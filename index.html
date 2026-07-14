@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Pulp Alley — Band Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Special+Elite&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#efe4c9;
+  --paper-dark:#e2d4ac;
+  --ink:#241d15;
+  --crimson:#8a2323;
+  --crimson-dark:#5e1717;
+  --brass:#b3872f;
+  --brass-light:#d8b25f;
+  --teal:#28524d;
+  --card-w:63mm;
+  --card-h:88mm;
+  --danger:#a02020;
+  --ok:#2f6b3a;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ink);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(179,135,47,0.08), transparent 40%),
+    radial-gradient(circle at 80% 90%, rgba(138,35,35,0.10), transparent 45%);
+  color:var(--ink);
+  font-family:'Roboto Slab', serif;
+  min-height:100vh;
+}
+h1,h2,h3,.display{
+  font-family:'Oswald', sans-serif;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+::selection{background:var(--brass-light);}
+
+/* ---------- LAYOUT SHELL ---------- */
+.app{
+  max-width:1200px;
+  margin:0 auto;
+  background:var(--paper);
+  min-height:100vh;
+  box-shadow:0 0 60px rgba(0,0,0,0.6);
+}
+header.masthead{
+  background:linear-gradient(180deg, var(--crimson) 0%, var(--crimson-dark) 100%);
+  color:var(--paper);
+  padding:22px 28px 18px;
+  border-bottom:6px solid var(--brass);
+  position:relative;
+}
+header.masthead::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:-6px; height:2px;
+  background:repeating-linear-gradient(90deg, var(--ink) 0 8px, transparent 8px 16px);
+  opacity:0.35;
+}
+header.masthead .eyebrow{
+  font-family:'Special Elite', monospace;
+  font-size:11px;
+  letter-spacing:0.25em;
+  opacity:0.85;
+  margin-bottom:2px;
+}
+header.masthead h1{
+  font-size:34px;
+  margin:0;
+  line-height:1;
+}
+header.masthead .tagline{
+  font-family:'Special Elite', monospace;
+  font-size:12px;
+  opacity:0.8;
+  margin-top:6px;
+}
+
+.toolbar{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  padding:18px 28px;
+  background:var(--paper-dark);
+  border-bottom:2px solid var(--ink);
+}
+.field{display:flex; flex-direction:column; gap:4px;}
+.field label{
+  font-family:'Special Elite', monospace;
+  font-size:10.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  opacity:0.75;
+}
+input[type=text], select{
+  font-family:'Roboto Slab', serif;
+  font-size:14px;
+  padding:7px 9px;
+  border:1.5px solid var(--ink);
+  background:var(--paper);
+  color:var(--ink);
+  border-radius:2px;
+}
+input[type=text]:focus, select:focus{outline:2px solid var(--brass); outline-offset:1px;}
+
+.slots-badge{
+  margin-left:auto;
+  font-family:'Oswald', sans-serif;
+  font-weight:600;
+  background:var(--ink);
+  color:var(--paper);
+  padding:10px 18px;
+  border-radius:2px;
+  display:flex;
+  gap:10px;
+  align-items:baseline;
+  border:2px solid var(--brass);
+}
+.slots-badge .n{font-size:22px; color:var(--brass-light);}
+.slots-badge.warn .n{color:#e07b3f;}
+.slots-badge.bad .n{color:#e05a5a;}
+
+button{
+  font-family:'Oswald', sans-serif;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  font-weight:600;
+  font-size:13px;
+  border:1.5px solid var(--ink);
+  background:var(--paper);
+  color:var(--ink);
+  padding:9px 14px;
+  border-radius:2px;
+  cursor:pointer;
+  transition:transform .08s ease;
+}
+button:hover{background:var(--brass-light); border-color:var(--brass);}
+button:active{transform:translateY(1px);}
+button.primary{background:var(--crimson); color:var(--paper); border-color:var(--crimson-dark);}
+button.primary:hover{background:var(--crimson-dark);}
+button.ghost{background:transparent;}
+button:disabled{opacity:0.35; cursor:not-allowed;}
+button.small{padding:5px 10px; font-size:11px;}
+button.danger{border-color:var(--danger); color:var(--danger);}
+button.danger:hover{background:var(--danger); color:var(--paper);}
+
+.main-grid{
+  padding:24px 28px 60px;
+  display:grid;
+  gap:18px;
+}
+
+/* ---------- ROSTER LIST (builder) ---------- */
+.roster-controls{
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  margin-bottom:6px;
+}
+.roster-controls .hint{font-family:'Special Elite',monospace; font-size:11.5px; opacity:0.7;}
+
+.char-block{
+  background:var(--paper);
+  border:2px solid var(--ink);
+  border-left:8px solid var(--crimson);
+  border-radius:2px;
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.char-block.leader{border-left-color:var(--brass);}
+.char-block .cb-head{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px;
+  background:var(--paper-dark);
+  cursor:pointer;
+}
+.cb-head .tag{
+  font-family:'Oswald',sans-serif; font-weight:700; font-size:12px;
+  text-transform:uppercase; letter-spacing:.05em;
+  background:var(--ink); color:var(--paper); padding:3px 9px; border-radius:2px;
+}
+.cb-head .name-input{flex:1; min-width:120px;}
+.cb-head .spazi{font-family:'Special Elite',monospace; font-size:12px; opacity:0.75; white-space:nowrap;}
+.cb-head .toggle-icon{font-size:16px; width:18px; text-align:center;}
+
+.cb-body{padding:14px 16px 18px; display:none; border-top:1px dashed var(--ink);}
+.cb-body.open{display:block;}
+
+.capacita-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+  gap:8px;
+  margin:10px 0 16px;
+}
+.cap-item{
+  border:1px solid var(--ink);
+  border-radius:2px;
+  padding:8px 10px;
+  background:#f7efd9;
+  display:flex; flex-direction:column; gap:6px;
+}
+.cap-item .cap-name{font-family:'Oswald',sans-serif; font-size:12px; font-weight:600; text-transform:uppercase;}
+.cap-item .cap-dice{font-family:'Special Elite',monospace; font-size:15px; color:var(--crimson-dark);}
+.cap-item .cap-toggle-label{font-family:'Special Elite',monospace; font-size:9px; opacity:0.65; margin-top:2px;}
+.cap-item .cap-toggle{display:flex; gap:4px;}
+.cap-item .cap-toggle button{flex:1; padding:4px 4px; font-size:10.5px;}
+.cap-item .cap-toggle button.active{background:var(--teal); color:var(--paper); border-color:var(--teal);}
+.cap-item.fixed .cap-toggle{display:none;}
+.cap-count-note{font-family:'Special Elite',monospace; font-size:11px; margin-bottom:8px; opacity:0.8;}
+.choice-row{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin-top:6px; padding:6px 8px;
+  background:#f0e4c4; border:1px dashed var(--crimson-dark); border-radius:2px;
+}
+.choice-row .choice-label{font-family:'Special Elite',monospace; font-size:11px;}
+.choice-row select{padding:4px 6px; font-size:12px;}
+
+.abilita-section h4{margin:14px 0 6px; font-size:13px;}
+.ability-pool{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(210px,1fr));
+  gap:6px;
+  max-height:230px;
+  overflow-y:auto;
+  padding:8px;
+  border:1px solid var(--ink);
+  background:#f7efd9;
+}
+.ability-opt{
+  display:flex; gap:6px; align-items:flex-start;
+  font-size:12px;
+  padding:5px 6px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.ability-opt:hover{background:var(--paper-dark);}
+.ability-opt input{margin-top:2px;}
+.ability-opt .lvl{font-family:'Special Elite',monospace; font-size:9.5px; opacity:0.6;}
+.ability-opt b{display:block;}
+.ability-opt span.eff{opacity:0.75; font-size:11px;}
+.ability-selected-list{margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;}
+.chip{
+  background:var(--crimson); color:var(--paper);
+  font-family:'Special Elite',monospace; font-size:11px;
+  padding:4px 8px; border-radius:12px;
+}
+.notes-field textarea{
+  width:100%; font-family:'Roboto Slab',serif; font-size:13px;
+  border:1.5px solid var(--ink); padding:8px; border-radius:2px;
+  background:var(--paper); resize:vertical; min-height:44px;
+}
+.cb-body .row-actions{margin-top:14px; display:flex; justify-content:flex-end;}
+
+/* ---------- VANTAGGIO NOTE ---------- */
+.vantaggio-desc{
+  font-family:'Special Elite',monospace;
+  font-size:12px;
+  background:#f7efd9;
+  border:1px dashed var(--ink);
+  padding:8px 10px;
+  max-width:520px;
+}
+
+/* ---------- PRINT PREVIEW SECTION (on screen) ---------- */
+.print-preview-wrap{
+  background:#3a3226;
+  padding:24px;
+  border:2px solid var(--ink);
+}
+.print-preview-wrap h3{color:var(--paper); margin-top:0;}
+.sheet{
+  background:white;
+  width:210mm;
+  min-height:297mm;
+  margin:0 auto 16px;
+  padding:8mm;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  display:grid;
+  grid-template-columns:repeat(3, var(--card-w));
+  grid-auto-rows:var(--card-h);
+  gap:2mm;
+  justify-content:center;
+  align-content:start;
+}
+
+/* ---------- CARD DESIGN (63x88mm) ---------- */
+.pcard{
+  width:var(--card-w);
+  height:var(--card-h);
+  border:0.6mm solid var(--ink);
+  border-radius:2.2mm;
+  background:var(--paper);
+  color:var(--ink);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  font-family:'Roboto Slab', serif;
+  break-inside:avoid;
+}
+.pcard .band-banner{
+  background:var(--crimson);
+  color:var(--paper);
+  font-family:'Special Elite', monospace;
+  font-size:5.6pt;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  padding:1.2mm 2.5mm;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.pcard .name-banner{
+  background:var(--ink);
+  color:var(--brass-light);
+  font-family:'Oswald', sans-serif;
+  font-weight:700;
+  font-size:9.5pt;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+  padding:1.6mm 2.5mm 1.2mm;
+  line-height:1.05;
+}
+.pcard .type-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:1mm 2.5mm;
+  background:var(--brass-light);
+  font-family:'Oswald', sans-serif;
+  font-size:6.4pt;
+  font-weight:600;
+  text-transform:uppercase;
+}
+.pcard .health-row{
+  display:flex; justify-content:space-between;
+  padding:1mm 2.5mm;
+  font-family:'Special Elite', monospace;
+  font-size:6.6pt;
+  border-bottom:0.3mm solid var(--ink);
+}
+.pcard .cap-table{
+  padding:1mm 2.5mm;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0.4mm 3mm;
+  font-size:6.3pt;
+  font-family:'Roboto Slab', serif;
+  border-bottom:0.3mm solid var(--ink);
+}
+.pcard .cap-table div{display:flex; justify-content:space-between; gap:2mm;}
+.pcard .cap-table .cv{font-family:'Special Elite',monospace; font-weight:bold; color:var(--crimson-dark);}
+.pcard .flex-content{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.pcard .abilita-box{
+  padding:1mm 2.5mm;
+  flex:1 1 0;
+  min-height:0;
+  overflow:hidden;
+  font-size:5.6pt;
+  line-height:1.15;
+}
+.pcard .abilita-box .ab-item{margin-bottom:0.5mm;}
+.pcard .abilita-box .ab-item b{font-family:'Oswald',sans-serif; font-size:5.9pt; text-transform:uppercase;}
+.pcard .grimorio-box{
+  padding:0.8mm 2.5mm;
+  flex:2 1 0;
+  min-height:0;
+  font-size:5.1pt;
+  line-height:1.15;
+  border-top:0.3mm dashed var(--ink);
+  overflow:hidden;
+}
+.pcard .grimorio-box .gr-title{
+  font-family:'Oswald',sans-serif; font-size:5.3pt; font-weight:700;
+  text-transform:uppercase; letter-spacing:.04em; color:var(--brass); margin-bottom:0.5mm;
+}
+.pcard .grimorio-box .sp-item{margin-bottom:0.5mm; padding-left:1mm;}
+.pcard .grimorio-box .sp-item b{font-family:'Oswald',sans-serif; font-size:5.4pt; text-transform:uppercase;}
+.pcard .grimorio-box .sp-meta{opacity:0.7; font-style:italic;}
+.pcard .notes-box{
+  padding:0.8mm 2.5mm 1mm;
+  font-family:'Special Elite', monospace;
+  font-size:5.3pt;
+  font-style:italic;
+  border-top:0.3mm dashed var(--ink);
+  min-height:3.5mm;
+}
+.pcard .footer-strip{
+  background:var(--ink);
+  color:var(--brass-light);
+  font-family:'Special Elite', monospace;
+  font-size:5pt;
+  text-align:center;
+  padding:0.6mm;
+  letter-spacing:0.08em;
+}
+
+/* ---------- PRINT MEDIA ---------- */
+.screen-only { display: block; }
+
+@media print {
+  /* 1. Nascondi tutti gli elementi dell'interfaccia a schermo */
+  .screen-only, 
+  header.masthead, 
+  .toolbar, 
+  .roster-controls, 
+  .footer-note,
+  button {
+    display: none !important;
+  }
+
+  /* 2. Resetta i contenitori principali per la stampa */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app {
+    background: transparent !important;
+    box-shadow: none !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .main-grid {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important; /* Evita conflitti di layout */
+  }
+
+  .print-preview-wrap {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* 3. Forza il foglio A4 alle esatte dimensioni fisiche */
+  .sheet {
+    background: #ffffff !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    page-break-after: always;
+    break-after: page;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    padding: 10mm !important; /* Margine interno di sicurezza per la stampante */
+    box-sizing: border-box !important;
+    
+    /* Ricostruisce la griglia esatta 3x3 per le carte */
+    display: grid !important;
+    grid-template-columns: repeat(3, var(--card-w)) !important;
+    grid-auto-rows: var(--card-h) !important;
+    gap: 2mm !important;
+    justify-content: center !important;
+    align-content: start !important;
+  }
+
+  /* Evita che l'ultimo foglio generi una pagina bianca extra alla fine */
+  .sheet:last-child {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* 4. Forza la stampante a stampare i colori di sfondo di bande e carte */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0 !important; /* Gestito internamente dal padding del .sheet */
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="masthead">
+    <div class="eyebrow">THE SHADOW PRESS · NOVEMBRE 1936</div>
+    <h1>Pulp Alley — Band Builder</h1>
+    <div class="tagline">Costruisci la tua Banda · genera le carte pronte per la stampa, 63×88mm</div>
+  </header>
+
+  <div class="toolbar screen-only">
+    <div class="field">
+      <label for="bandaNome">Nome della Banda</label>
+      <input type="text" id="bandaNome" placeholder="Es. I Pirati dei Cieli" value="La Mia Banda">
+    </div>
+    <div class="field">
+      <label for="vantaggioSel">Vantaggio</label>
+      <select id="vantaggioSel"></select>
+    </div>
+    <div class="field" style="min-width:280px;">
+      <label>&nbsp;</label>
+      <div id="vantaggioDesc" class="vantaggio-desc" style="display:none;"></div>
+    </div>
+    <div class="slots-badge" id="slotsBadge">
+      SPAZI <span class="n" id="slotsN">10</span>/10
+    </div>
+<div style="display: flex; gap: 8px;">
+  <button onclick="exportBanda()" class="ghost" style="border-color: var(--brass);">💾 Salva JSON</button>
+  <button onclick="document.getElementById('importFile').click()" class="ghost" style="border-color: var(--brass);">📂 Carica JSON</button>
+  <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBanda(event)">
+</div>
+  </div>
+
+  <div class="main-grid">
+
+    <section class="screen-only">
+      <div class="roster-controls">
+        <button class="primary" onclick="addCharacter('spalla')">+ Aggiungi Spalla</button>
+        <button class="primary" onclick="addCharacter('alleato')">+ Aggiungi Alleato</button>
+        <button class="primary" onclick="addCharacter('seguace')">+ Aggiungi Seguace</button>
+        <span class="hint">Il Leader è sempre presente e non consuma spazi.</span>
+      </div>
+
+      <div id="rosterList"></div>
+    </section>
+
+    <section class="screen-only" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="primary" onclick="renderPrintSheets(); document.getElementById('printSection').scrollIntoView({behavior:'smooth'});">↓ Genera pagina di stampa</button>
+      <button onclick="doPrint()">🖨️ Stampa / Salva PDF</button>
+      <span class="hint">Se il pulsante non apre la finestra di stampa, probabilmente stai usando l'anteprima integrata: apri il file scaricato in una scheda del browser (non nell'anteprima) e riprova.</span>
+    </section>
+
+    <section class="print-preview-wrap" id="printSection">
+      <h3 class="screen-only">Anteprima di stampa (formato carte 63×88mm su A4)</h3>
+      <div id="sheetsContainer"></div>
+    </section>
+
+  </div>
+
+  <div class="footer-note screen-only">Prototipo non ufficiale · dati regole tratti dal manuale Pulp Alley Deluxe (VEA Editori) · uso personale</div>
+</div>
+
+<script>
+/* =========================================================
+   DATI DI GIOCO
+   ========================================================= */
+const CAP_KEYS = ['Rissa','Sparo','Schivata','Forza','Finezza','Astuzia'];
+
+const DTYPES = ['d6','d8','d10','d12'];
+
+const CHAR_TYPES = {
+  leader:  { label:'Leader',  livello:4, spazi:0, salute:'1d10', maxAbilita:3, maxLivelloAbilita:4, maxCount:1,
+             qtyHigh:3, qtyLow:2, qtyHighCount:4, qtyChoice:true,
+             typeHigh:'d10', typeLow:'d8', typeHighCount:4, typeChoice:true },
+  spalla:  { label:'Spalla',  livello:3, spazi:3, salute:'1d8',  maxAbilita:2, maxLivelloAbilita:3, maxCount:1,
+             qtyHigh:3, qtyLow:2, qtyHighCount:3, qtyChoice:true,
+             typeHigh:'d8', typeLow:'d6', typeHighCount:3, typeChoice:true },
+  alleato: { label:'Alleato', livello:2, spazi:2, salute:'1d6',  maxAbilita:1, maxLivelloAbilita:2, maxCount:99,
+             qtyHigh:2, qtyLow:1, qtyHighCount:2, qtyChoice:true,
+             typeHigh:'d6', typeLow:'d6', typeHighCount:6, typeChoice:false },
+  seguace: { label:'Seguace', livello:1, spazi:1, salute:'1d6*', maxAbilita:1, maxLivelloAbilita:1, maxCount:99,
+             qtyHigh:1, qtyLow:1, qtyHighCount:6, qtyChoice:false,
+             typeHigh:'d6', typeLow:'d6', typeHighCount:6, typeChoice:false },
+};
+
+const ABILITA = {
+  1:[["Acquatico","Supera pericoli in acqua profonda; LdV 12\""],
+     ["Agile","+1 dado Schivata", [{k:'delta',cap:'Schivata',amount:1}]],
+     ["Alato","Vola fino a 16\""],
+     ["Animale","+1 dado a due Capacità, Sparo a Niente Dadi", [{k:'deltaChoice',amount:1,count:2,options:['Rissa','Schivata','Forza','Finezza','Astuzia']},{k:'nd',cap:'Sparo'}]],
+     ["Astuto","Rilancia Schivata o Astuzia (1/turno)"],["Bestia","Niente azioni; scegli 2 gratis tra: Animale, Acquatico, Grosso, Feroce, Irragionevole, Rianimato, Scattante, Sciame, Alato"],
+     ["Bruto","Rilancia Rissa o Forza (1/turno)"],
+     ["Cecchino","+1 dado Sparo", [{k:'delta',cap:'Sparo',amount:1}]],
+     ["Celato","Vince i pareggi nei test di individuazione"],["Corazzato","+1 dado ai test Salute; niente corse"],
+     ["Feroce","+1 dado Rissa", [{k:'delta',cap:'Rissa',amount:1}]],
+     ["Forzuto","+1 dado Forza", [{k:'delta',cap:'Forza',amount:1}]],
+     ["Furbo","+1 dado Schivata e Astuzia, Rissa a Niente Dadi", [{k:'delta',cap:'Schivata',amount:1},{k:'delta',cap:'Astuzia',amount:1},{k:'nd',cap:'Rissa'}]],
+     ["In Sella","Cavalcatura base gratuita"],
+     ["Inganno","Scarta per +1 dado Sparo o Finezza"],
+     ["Ingegnoso","+1 dado Astuzia", [{k:'delta',cap:'Astuzia',amount:1}]],
+     ["Irragionevole","+1 tipo dado Rissa/Forza, -1 tipo dado Astuzia/Finezza", [{k:'typestep',cap:'Rissa',steps:1},{k:'typestep',cap:'Forza',steps:1},{k:'typestep',cap:'Astuzia',steps:-1},{k:'typestep',cap:'Finezza',steps:-1}]],
+     ["Mostro","Incute Orrore"],
+     ["Organizzato","Scarta per +1 dado Schivata o Astuzia"],["Ostinato","Rilancia Forza/Finezza/Astuzia (1/turno)"],
+     ["Pestaggio","Scarta per +1 dado Rissa o Forza"],
+     ["Pugile","+1 dado a due Capacità, Sparo a Niente Dadi", [{k:'deltaChoice',amount:1,count:2,options:['Rissa','Schivata','Forza','Finezza','Astuzia']},{k:'nd',cap:'Sparo'}]],
+     ["Raffica Corta","Azione: sagoma Raffica Corta"],
+     ["Rianimato","Auto-supera test Salute a 1 dado; niente Schivata", [{k:'nd',cap:'Schivata'}]],
+     ["Sagace","+1 dado Finezza", [{k:'delta',cap:'Finezza',amount:1}]],
+     ["Scattante","Muove 16\" invece di 12\""],
+     ["Sciame","Gioca un pericolo dalla mano su un nemico a contatto"],["Stupido","Niente azioni; scegli 2 gratis tra: Acquatico, Bruto, Feroce, Cecchino, Sveglio, Pestaggio, Inganno, Alato"],
+     ["Subdolo","+1 dado Schivata e Finezza, Rissa a Niente Dadi", [{k:'delta',cap:'Schivata',amount:1},{k:'delta',cap:'Finezza',amount:1},{k:'nd',cap:'Rissa'}]],
+     ["Sveglio","Rilancia Sparo o Finezza (1/turno)"],
+     ["Tenebroso","+1 dado a test di individuazione contrapposti"],
+     ["Vero Credente","Sparo a Niente Dadi; per le altre Capacità tiri dadi pari al livello del personaggio", [{k:'nd',cap:'Sparo'},{k:'levelDice'}], ['spalla','alleato','seguace']]],
+  2:[["Acuto","Ravvicinata 12\", lunga oltre 48\""],["Combattimento Ravvicinato","Niente Sparo oltre 12\""],
+     ["Debole di Cuore","2 Abilità Liv.1 gratis; Recupero Compromesso"],["Dottore","Azione: Astuzia per ripetere Test di Recupero"],
+     ["Esitare","2 Abilità Liv.1 gratis; Azioni Compromesse"],["Esplosione","Azione: sagoma Esplosione 3\""],
+     ["Fumogeno","Azione: sagoma area difficile che blocca LdV"],
+     ["Grosso","+1 tipo dado Salute/Forza, -1 tipo dado Schivata/Finezza", [{k:'typestep',cap:'Salute',steps:1},{k:'typestep',cap:'Forza',steps:1},{k:'typestep',cap:'Schivata',steps:-1},{k:'typestep',cap:'Finezza',steps:-1}]],
+     ["Impetuoso","2 Abilità Liv.1 gratis; niente carte durante attivazione"],["Implacabile","Movimento extra dopo A Terra/KO nemico"],
+     ["Innocuo","Non attaccabile oltre 6\"; non attacca; Rissa e Sparo a Niente Dadi", [{k:'nd',cap:'Rissa'},{k:'nd',cap:'Sparo'}]],["Intralcio","2 Abilità Liv.1 gratis; Intralcia 2 Capacità"],
+     ["Intrepido","Disimpegno da 1\" a 3\""],["Intuizione","Sostituisce una sfida rivelata"],
+     ["Inventore","Test Astuzia per equipaggiare un bene gratis"],["Mutaforma","Profilo alternativo"],
+     ["Nobiltà","Non va MAI KO per Recupero fallito"],["Raffica Lunga","Azione: sagoma Raffica Lunga"],
+     ["Sfortunato","2 Abilità Liv.1 gratis; avversario pesca carta"],["Shock","Test Salute area, spinta se fallito"],
+     ["Soprannaturale","Nemici combattono con Astuzia/Finezza"],["Spericolato","+1 bonus a un test di pericolo (1/turno)"],
+     ["Trascinare","Porta il nemico a contatto dopo sparatoria"],
+     ["Canalizzatore","(Solo Incantatori) Quando incanali, puoi scartare qualsiasi carta invece di una con icona corrispondente"],
+     ["Talento Innato","Diventi un Incantatore. Scegli 1 incantesimo per il tuo Libro degli Incantesimi"],
+     ["Arte Magica","Diventi un Incantatore. Scegli un numero di incantesimi pari al tuo livello per il Libro degli Incantesimi. Rissa e Sparo sono Intralciate"],
+     ["Battimago","(Solo Incantatori) Rissa e Sparo non sono Intralciate dall'Abilità Arte Magica"],
+     ["Selvaggio","(Solo Incantatori) Non scarti per incanalare: peschi la prima carta del Mazzo Fortuna e confronti l'icona con quella dell'incantesimo (+1 se combacia)"]],
+  3:[["Accessoriato","Ignora la rottura di un attrezzo"],["Accurato","Non limitato al nemico più vicino (sparo)"],
+     ["Aiuto","+1 dado sfida a un compagno entro 6\""],["Arguto","Riduci dado per +2 dadi Forza/Finezza/Astuzia"],
+     ["Attacco Rapido","Riduci dado Rissa per +2 dadi Rissa"],["Capitano","+1 Equipaggiamento per veicoli"],
+     ["Colpo Rapido","Riduci dado Sparo per +2 dadi ravvicinati"],["Deduttivo","Azione: pesca una carta Fortuna"],
+     ["Doppia Pistola","Sparatoria extra sullo stesso nemico"],["Selvaggio","Rissa extra sullo stesso nemico"],
+     ["Grinta","Ignora penalità combattimenti multipli (Rissa)"],["Guardia del Corpo","Scambia posto col Leader attaccato", [], ['spalla']],
+     ["Indomito","Ripete un Test di Recupero per turno"],["Muscoli d'Acciaio","Rissa/Forza non influenzate dalle ferite"],
+     ["Paralizzante","Test Forza: blocca il movimento del bersaglio"],["Portata","Usa Rissa come Sparo entro 3\""],
+     ["Raffinato","Sparo/Finezza non influenzate dalle ferite"],["Tecnofilo","+1 Equipaggiamento per modifiche"],
+     ["Scaltro","Schivata/Finezza non influenzate dalle ferite"],["Schivata Rapida","Riduci dado Schivata per +2 dadi Schivata"],
+     ["Sfacciato","Non limitato al nemico più vicino (carica)"],["Sguardo Spaventoso","Test Finezza: blocca corsa/sparo del bersaglio"],
+     ["Spietato","Spara in una rissa con un amico coinvolto"],["Tiratore Scelto","I bersagli non hanno tiro salvezza copertura"],
+     ["Veterano","Ignora penalità combattimenti multipli (Sparo)"],
+     ["Trama d'Etere","(Solo Incantatori) La gittata massima dei tuoi incantesimi aumenta di 6\""],
+     ["Artificiere","Durante la preparazione, supera una sfida casuale: se superata, scegli un Bene Arcano con costo pari o inferiore ai successi ottenuti"],
+     ["Cuore di Drago","Ogni volta che superi un Test di Recupero Incantesimo, puoi rimuovere fino a 2 segnalini invece di 1"],
+     ["Vista Mistica","(Solo Incantatori) Non hai bisogno della Linea di Vista per scegliere i bersagli dei tuoi incantesimi"],
+     ["Fato","Se è in gioco un Incantamento nemico, puoi tirare un Test di Recupero Incantesimo a fine turno anche se non è assegnato a te; se superato, rimuovi 1 segnalino da un Incantamento nemico a scelta"]],
+  4:[["Benestante","+1 punto risorsa in preparazione"],["Canaglia","Nemico A Terra a contatto: scarta o va KO"],
+     ["Cappa & Daga","+1 successo a test individuazione"],["Comandante","+4 spazi Banda (solo Liv.1-2)"],
+     ["Convocare","Azione Completa: evoca Servitori Liv.1"],["Diavolo Fortunato","Blocca effetti \"quando un nemico si attiva\""],
+     ["Disarmante","I nemici deboli devono superare Finezza"],["Duro","I nemici che ti combattono hanno -1 Schivata"],
+     ["Esplosione Mentale","Test Astuzia area, penalità e spinta"],["Furfante","Ruba un Punto Trama da nemico A Terra/KO"],
+     ["Impervio","Nemici -1 Sparo; tua Schivata -1 tipo dado", [{k:'typestep',cap:'Schivata',steps:-1}]],
+     ["Intimidatorio","I nemici deboli devono superare Astuzia"],
+     ["Intoccabile","Conti sempre come in copertura"],
+     ["Inumano","Porta una Capacità da d10 a d12", [{k:'typestepChoice',steps:1,count:1,options:CAP_KEYS}]],
+     ["Lottatore","I nemici deboli devono superare Forza"],["Maestro del Travestimento","Inizia nascosto; soppiatto a 6\""],
+     ["Nervi d'Acciaio","Ignora una penalità di -1 dado"],["Offuscare la Mente","Nasconditi anche in LdV nemica"],
+     ["Placcaggio al Volo","-1 dado a tutte le Capacità di combattimento nemiche"],["Presenza Dannata","Pericolo dalla mano contro un nemico"],
+     ["Presenza Oscura","Sagoma 3\" pericolosa che blocca LdV"],["Rigenerazione","Test di Recupero con 1d8"],
+     ["Ripresa","Recupero modelli per una Gang amica"],["Risucchio di Vita","Recupero immediato se vinci nettamente Rissa"],
+     ["Scellerato","Il nemico sconfitto non recupera questo turno"],["Seguace Leale","Personaggi temporanei beneficiano dei Vantaggi"],
+     ["Senso di Pericolo","Supera automaticamente il primo pericolo"],["Stimolante","+1 dado sfida a un compagno entro 12\""],
+     ["Straordinario","Porta una Capacità da d8 a d10", [{k:'typestepChoice',steps:1,count:1,options:CAP_KEYS}]],["Tattico","Abilità Gang extra alle Gang entro 12\""],
+     ["Vigoroso","Rilancia 1 dado Salute fallito in Rissa"],["Volontà Ferrea","Azione: Test di Recupero immediato"],
+     ["Aura Arcana","Quando resisti a un incantesimo nemico lanciato con successo, il suo potere è ridotto di 1 per ogni tuo successo"],
+     ["Ammaliatore","(Solo Incantatori) Quando incanali per lanciare o resistere a un Incantamento, ottieni +2 invece di +1"],
+     ["Stregone","(Solo Incantatori) Quando incanali per lanciare o resistere a un Incantesimo Effimero, ottieni +2 invece di +1"],
+     ["Natomago","(Solo Incantatori) Puoi muoverti fino a 6\" e incanalare nella stessa Attivazione. Il costo per un'Abilità di Ricerca Arcana è ridotto di -1 PE"]],
+};
+
+const SPELLS = {
+  rosso: { skill:'Forza', colore:'#8a2323', label:'Rosso (Forza)',
+    2:[
+      {nome:"Augeo", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Forza", effetto:"Il bersaglio ottiene un bonus di +1 a Rissa e Forza.", breve:"+1 Rissa/Forza al bersaglio"},
+      {nome:"Gravis", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Il Movimento del bersaglio è Compromesso.", breve:"Movimento Compromesso"},
+      {nome:"Ignis Ictus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce un numero di colpi pari al Potere di questo incantesimo.", breve:"Colpi = Potere"},
+      {nome:"Revoco", tipo:"Effimero", bersaglio:"Marcatore Incantesimo max 12\"", prova:"Forza", effetto:"Tutti i personaggi entro un numero di pollici pari al Potere incontrano un Pericolo.", breve:"Pericolo entro X\" (X=Potere)"},
+      {nome:"Stupor", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"La Schivata e l'Astuzia del bersaglio sono Intralciate.", breve:"Schivata/Astuzia Intralciate"},
+      {nome:"Tumultus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure si muove X\" in qualsiasi direzione (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o sposta X\""},
+    ],
+    3:[
+      {nome:"Fragor", tipo:"Effimero", bersaglio:"Nemici max 12\"", prova:"Forza", effetto:"Prendi di mira un numero di nemici, fino al Potere di questo incantesimo. Ogni bersaglio subisce 1 colpo.", breve:"1 colpo a nemici = Potere"},
+      {nome:"Impar Acti", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Le azioni del bersaglio sono Compromesse.", breve:"Azioni Compromesse"},
+      {nome:"Jactus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
+      {nome:"Oculo Malus", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Il bersaglio conta come se si trovasse in un'Area Difficile.", breve:"Conta come Area Difficile"},
+    ],
+    4:[
+      {nome:"Duellum", tipo:"Effimero", bersaglio:"Nemico max 3\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce una ferita. Speciale: se il bersaglio vince, l'incantatore subisce una ferita.", breve:"1 ferita (contraccolpo se perdi)"},
+      {nome:"Maledictum", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Prima che il bersaglio tiri per qualsiasi Capacità, l'incantatore può rimuovere 1 segnalino per infliggergli -1 dado.", breve:"-1 dado (rimuovi 1 segnalino)"},
+    ],
+  },
+  blu: { skill:'Finezza', colore:'#28524d', label:'Blu (Finezza)',
+    2:[
+      {nome:"Confusio", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Finezza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure incontra un Pericolo (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o pericolo"},
+      {nome:"Debilitor", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Finezza contrapposta", effetto:"La Rissa e la Forza del bersaglio sono Intralciate.", breve:"Rissa/Forza Intralciate"},
+      {nome:"Dextrus", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Finezza", effetto:"Il bersaglio ottiene un bonus di +1 a Sparo e Finezza.", breve:"+1 Sparo/Finezza al bersaglio"},
+      {nome:"Nebulo", tipo:"Incantamento", bersaglio:"Marcatore Incantesimo max 24\"", prova:"Finezza", effetto:"L'area (6\" diam.) attorno al marcatore è Oscurata e Difficile.", breve:"Area 6\" oscurata/difficile"},
+      {nome:"Obscuro", tipo:"Effimero", bersaglio:"Sé e Amici max 12\"", prova:"Finezza", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: ciascuno diventa Nascosto.", breve:"Nasconde amici = Potere"},
+      {nome:"Vis Sortis", tipo:"Effimero", bersaglio:"Incantamenti max 6\"", prova:"Finezza", effetto:"Aggiungi 1 segnalino su ogni Incantamento entro 6\", oppure rimuovine 1 da ciascuno.", breve:"±1 segnalino incantamenti 6\""},
+    ],
+    3:[
+      {nome:"Ab Amesha", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Finezza", effetto:"Il bersaglio ottiene l'Abilità Acquatico, Celato o Alato (scelta dell'incantatore).", breve:"Ottiene Acquatico/Celato/Alato"},
+      {nome:"Invisus", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Finezza", effetto:"Il bersaglio è Nascosto: quando un nemico tira per individuarlo, il bersaglio vince automaticamente e si rimuove 1 segnalino (anche quando verrebbe automaticamente individuato).", breve:"Nascosto, vince individuazione"},
+      {nome:"Stabilitas", tipo:"Effimero", bersaglio:"Incantamento max 12\"", prova:"Finezza", effetto:"Aggiungi o rimuovi dal bersaglio un numero di segnalini pari al Potere di questo incantesimo.", breve:"±segnalini = Potere"},
+      {nome:"Zephyrus", tipo:"Effimero", bersaglio:"Sé o Amico max 12\"", prova:"Finezza", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
+    ],
+    4:[
+      {nome:"Dementis", tipo:"Incantamento", bersaglio:"Nemico max 12\"", prova:"Finezza contrapposta", effetto:"Ogni volta che il bersaglio si attiva, deve pescare una carta Orrore.", breve:"Pesca Orrore ad ogni attivazione"},
+      {nome:"Relinquo", tipo:"Effimero", bersaglio:"Nemico max 6\"", prova:"Finezza contrapposta", effetto:"Se il bersaglio possiede uno o più Punti Trama, deve scartarne uno (a scelta del bersaglio).", breve:"Bersaglio abbandona 1 Punto Trama"},
+    ],
+  },
+  verde: { skill:'Astuzia', colore:'#7a5c1e', label:'Verde (Astuzia)',
+    2:[
+      {nome:"Emendo", tipo:"Effimero", bersaglio:"Sé e Amici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: tira un Test di Recupero per ciascuno.", breve:"Recupero per amici = Potere"},
+      {nome:"Ineptus", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Astuzia contrapposta", effetto:"Lo Sparo e la Finezza del bersaglio sono Intralciati.", breve:"Sparo/Finezza Intralciati"},
+      {nome:"Prudenti", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Astuzia", effetto:"Il bersaglio ottiene un bonus di +1 a Schivata e Astuzia.", breve:"+1 Schivata/Astuzia al bersaglio"},
+      {nome:"Pulsus", tipo:"Effimero", bersaglio:"Nemici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira nemici fino al Potere di questo incantesimo: muovi ciascuno di 1\" lontano dall'incantatore.", breve:"Sposta nemici 1\" via"},
+      {nome:"Purgatrix", tipo:"Effimero", bersaglio:"Incantamento max 6\"", prova:"Astuzia", effetto:"Rimuovi tutti i segnalini Potere dal bersaglio.", breve:"Rimuove tutti i segnalini"},
+      {nome:"Resoluta", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Astuzia", effetto:"Prima che il bersaglio tiri per un Pericolo o un Punto Trama, può rimuovere 1 segnalino per ottenere +1.", breve:"+1 a pericolo/punto trama"},
+    ],
+    3:[
+      {nome:"Ab Initio", tipo:"Effimero", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure diventa il Direttore.", breve:"Carta Fortuna o Direttore"},
+      {nome:"Aruspex", tipo:"Effimero", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca carte Fortuna pari al Potere: aggiungine 1 alla mano, rimetti le altre in cima al mazzo nell'ordine che preferisci.", breve:"Pesca e scegli tra X carte"},
+      {nome:"Fortis Velo", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Astuzia", effetto:"Il bersaglio ottiene l'Abilità Corazzato, Indomito o Intoccabile (scelta dell'incantatore).", breve:"Ottiene Corazzato/Indomito/Intoccabile"},
+      {nome:"Periculos", tipo:"Incantamento", bersaglio:"Marcatore Incantesimo max 12\"", prova:"Astuzia", effetto:"L'area (3\" diam.) attorno al marcatore è Pericolosa per tutti i nemici.", breve:"Area 3\" pericolosa"},
+    ],
+    4:[
+      {nome:"Ab Scutum", tipo:"Incantamento", bersaglio:"Sé o Amico max 3\"", prova:"Astuzia", effetto:"Invece di tirare un Test di Salute, il bersaglio può rimuovere 1 segnalino per superarlo automaticamente.", breve:"Supera Test Salute automatico"},
+      {nome:"Sana Purus", tipo:"Effimero", bersaglio:"Sé o Amico max 6\"", prova:"Astuzia", effetto:"Il bersaglio tira un numero di Test di Recupero pari al Potere di questo incantesimo.", breve:"Recuperi = Potere"},
+    ],
+  },
+};
+
+const VANTAGGI = [
+  {nome:"— Nessuno —", costo:0, effetto:""},
+  {nome:"Dominio", costo:0, effetto:"Accesso a Servitori, Doni e Culto. Non puoi usare Punti Risorsa per Rinforzi, Contatti o Equipaggiamento."},
+  {nome:"Altare", costo:1, effetto:"Preparazione: 1d6, con 4+ scegli 2 Servitori Liv.1 o 1 Liv.2 per questo scenario."},
+  {nome:"Anfibi", costo:1, effetto:"Uno o più personaggi possono includere l'abilità Acquatico oltre alle proprie."},
+  {nome:"Base", costo:1, effetto:"Preparazione: 1d6, con 4+ ricevi +1 Punto Risorsa per un bene/veicolo/cavalcatura."},
+  {nome:"Ben Armato", costo:1, effetto:"1/turno, prima di tirare Sparo o Rissa, annulla una penalità di -1 dado."},
+  {nome:"Compagni", costo:1, effetto:"Ogni Alleato inizia con un'abilità aggiuntiva. La Banda non può mai includere una Spalla."},
+  {nome:"Corta Distanza", costo:1, effetto:"Non puoi sparare oltre 12\". Puoi rilanciare un dado Rissa durante l'attivazione."},
+  {nome:"Garage", costo:1, effetto:"Preparazione: +1 punto Equipaggiamento per un veicolo o modifiche."},
+  {nome:"Genio", costo:1, effetto:"Niente Leader: una Spalla gratuita (0 spazi) fa da leader. +6 spazi solo per personaggi Liv.1-2. (Gestisci manualmente lo slot Leader)"},
+  {nome:"In Fuga", costo:1, effetto:"Fine preparazione: Dritte, Contatti, Equipaggiamento e Rinforzi inutilizzati vanno persi. 1/turno, dopo che è rivelata una sfida per un personaggio, puoi sostituirla con una nuova sfida pescata dal mazzo."},
+  {nome:"Ingegnoso", costo:1, effetto:"1/turno, come azione per un personaggio, scarta e poi pesca 1 carta Fortuna."},
+  {nome:"Lunga Distanza", costo:1, effetto:"I personaggi ignorano la penalità -1 dado per la lunga distanza e possono rilanciare 1 dado Sparo durante l'attivazione se non si muovono."},
+  {nome:"Officina", costo:1, effetto:"Preparazione: +1 punto Equipaggiamento per armi o modifiche."},
+  {nome:"Rianimato (Vantaggio)", costo:1, effetto:"Uno o più personaggi possono includere l'abilità Rianimato oltre alle proprie."},
+  {nome:"Sensi Acuti", costo:1, effetto:"1/turno, dai a un personaggio un bonus di +1 dado Schivata per un pericolo."},
+  {nome:"Specialisti", costo:1, effetto:"Riduci di un tipo di dado tre Capacità del Leader. Tutti gli altri compagni aumentano di un tipo di dado una Capacità. Il Leader non può avere Capacità a Niente Dadi."},
+  {nome:"Stalla", costo:1, effetto:"Preparazione: +1 punto Equipaggiamento per una cavalcatura o abilità di cavalcatura."},
+  {nome:"Tuttofare", costo:1, effetto:"Preparazione: spendi un punto Dritte, Contatti, Equipaggiamento o Rinforzi per scegliere un'Abilità di Livello 1 per il Leader, valida solo per questo scenario."},
+  {nome:"Animali", costo:2, effetto:"Uno o più personaggi possono includere l'abilità Animale oltre alle proprie."},
+  {nome:"Antica Setta", costo:2, effetto:"Richiede Dominio. Preparazione: dadi Finezza Leader, ogni successo +1 punto Contatti."},
+  {nome:"Aviatore", costo:2, effetto:"Uno o più personaggi possono includere l'abilità Alato oltre alle proprie."},
+  {nome:"Baluardo della Scienza", costo:2, effetto:"Preparazione: dadi Astuzia Leader, ogni successo +1 punto Equipaggiamento."},
+  {nome:"Capace", costo:2, effetto:"I personaggi possono rilanciare un dado Forza, Finezza o Astuzia durante l'attivazione."},
+  {nome:"Centauro", costo:2, effetto:"Uno o più personaggi possono includere l'abilità In Sella oltre alle proprie."},
+  {nome:"Chiamata alle Armi", costo:2, effetto:"Preparazione: dadi Forza Leader, ogni successo +1 punto Rinforzi (Liv.1-2)."},
+  {nome:"Compagnia di Eroi", costo:2, effetto:"La Banda può includere una seconda Spalla (costa comunque 3 spazi)."},
+  {nome:"Fine Superiore", costo:2, effetto:"Gli avversari non diventano Direttore vincendo nettamente contro tuoi Liv.1-2."},
+  {nome:"Mutaforma (Vantaggio)", costo:2, effetto:"Uno o più personaggi possono includere l'abilità Mutaforma oltre alle proprie."},
+  {nome:"Nefasto", costo:2, effetto:"I tuoi personaggi possono sparare in una Rissa che includa un compagno."},
+  {nome:"Nobiltà (Vantaggio)", costo:2, effetto:"Uno o più personaggi possono includere l'abilità Nobiltà oltre alle proprie."},
+  {nome:"Padrone", costo:2, effetto:"Richiede Dominio. Preparazione: dadi Forza Leader, ogni successo +1 punto Rinforzi Servitori."},
+  {nome:"Patto Oscuro", costo:2, effetto:"Richiede Dominio. Preparazione: dadi Astuzia Leader, ogni successo +1 punto Equipaggiamento (Doni)."},
+  {nome:"Rete di Sostenitori", costo:2, effetto:"Preparazione: dadi Finezza Leader, ogni successo +1 punto Contatti."},
+  {nome:"Tenace", costo:2, effetto:"1/turno, nemico entro 6\" da ferito: scarta carta per Test di Recupero immediato."},
+  {nome:"Agenti Tenebrosi", costo:3, effetto:"Uno o più personaggi possono includere l'abilità Tenebroso oltre alle proprie."},
+  {nome:"Avventurieri Spericolati", costo:3, effetto:"Uno o più personaggi possono includere l'abilità Spericolato oltre alle proprie."},
+  {nome:"Esploratori Intrepidi", costo:3, effetto:"Uno o più personaggi possono includere l'abilità Intrepido oltre alle proprie."},
+  {nome:"Truppe Acute", costo:3, effetto:"Uno o più personaggi possono includere l'abilità Acuto oltre alle proprie."},
+  {nome:"Duo", costo:4, effetto:"La Spalla inizia con un'Abilità aggiuntiva e Salute 1d10. La Banda può includere solo Leader, Spalla, Vantaggi e Soci — mai personaggi di Livello 1 o 2. Il costo non include la Spalla. (Gestisci manualmente la struttura del roster)"},
+  {nome:"Banda di Leggende", costo:10, effetto:"La Banda include quattro Spalle (incluse nel costo) ma non un Leader: scegline una per ricoprirne il ruolo negli scenari. (Gestisci manualmente la struttura del roster)"},
+];
+
+/* =========================================================
+   STATO APPLICAZIONE
+   ========================================================= */
+let idCounter = 1;
+let state = {
+  banda: "La Mia Banda",
+  vantaggio: "— Nessuno —",
+  leader: makeChar('leader', 'Il Capo'),
+  companions: []
+};
+
+function makeChar(tipo, nome){
+  const t = CHAR_TYPES[tipo];
+  const capacita = {};
+  CAP_KEYS.forEach((k,i)=>{
+    capacita[k] = { qty: i < t.qtyHighCount ? 'high' : 'low', type: i < t.typeHighCount ? 'high' : 'low' };
+  });
+  return { id: idCounter++, tipo, nome: nome || t.label, capacita, abilita: [], abilitaChoices: {}, incantesimi: [], note: "" };
+}
+
+function findSpell(nome){
+  for(const branchKey in SPELLS){
+    const branch = SPELLS[branchKey];
+    for(let lvl=2; lvl<=4; lvl++){
+      const found = (branch[lvl]||[]).find(s=>s.nome===nome);
+      if(found) return { ...found, livello: lvl, branchKey, branchLabel: branch.label, colore: branch.colore };
+    }
+  }
+  return null;
+}
+
+// Chiave univoca per un'abilità (livello + nome): serve perché lo stesso nome
+// può comparire a livelli diversi provenienti da fonti diverse (es. "Selvaggio"
+// esiste sia come abilità base Liv.3 sia come abilità Arcana Liv.2).
+function abilityKey(lvl, nome){ return lvl + '::' + nome; }
+function findAbilityByKey(key){
+  if(!key) return null;
+  const sep = key.indexOf('::');
+  const lvl = +key.slice(0, sep);
+  const nome = key.slice(sep+2);
+  const found = ABILITA[lvl] && ABILITA[lvl].find(a=>a[0]===nome);
+  if(!found) return null;
+  return { nome:found[0], effetto:found[1], mods: found[2] || [], restrict: found[3] || null, livello: lvl, key };
+}
+// Ricava tutte le chiavi presenti in c.abilita il cui nome corrisponde (indipendente dal livello)
+function hasAbilityNamed(c, nome){
+  return c.abilita.some(key=>{ const ab = findAbilityByKey(key); return ab && ab.nome === nome; });
+}
+
+// Numero di incantesimi selezionabili in base alle Abilità dell'incantatore
+function spellSlots(c, t){
+  let n = 0;
+  if(hasAbilityNamed(c, 'Talento Innato')) n += 1;
+  if(hasAbilityNamed(c, 'Arte Magica')) n += t.livello;
+  return n;
+}
+
+function clampIdx(i){ return Math.max(0, Math.min(DTYPES.length-1, i)); }
+
+// Calcola i dadi "base" (solo dalla scelta forte/debole) di una Capacità
+function baseCapacita(t, capSel){
+  const qty = t.qtyChoice ? (capSel.qty==='high' ? t.qtyHigh : t.qtyLow) : t.qtyHigh;
+  const typeStr = t.typeChoice ? (capSel.type==='high' ? t.typeHigh : t.typeLow) : t.typeHigh;
+  return { qty, typeIdx: DTYPES.indexOf(typeStr) };
+}
+
+// Analizza il valore Salute di un tipo di personaggio, es. "1d10" o "1d6*"
+function parseSalute(str){
+  const m = str.match(/^(\d+)(d\d+)(\*?)$/);
+  if(!m) return { qty:1, typeIdx:0, asterisco:false };
+  return { qty:+m[1], typeIdx: DTYPES.indexOf(m[2]), asterisco: m[3]==='*' };
+}
+
+// Calcola i dadi "finali" di ogni Capacità (incluso Salute) dopo aver applicato le Abilità selezionate
+function computeFinalCapacita(c, t){
+  const result = {};
+  CAP_KEYS.forEach(k=>{
+    const base = baseCapacita(t, c.capacita[k]);
+    result[k] = { qty: base.qty, typeIdx: base.typeIdx, nd:false };
+  });
+  const saluteBase = parseSalute(t.salute);
+  result['Salute'] = { qty: saluteBase.qty, typeIdx: saluteBase.typeIdx, nd:false, asterisco: saluteBase.asterisco };
+
+  c.abilita.forEach(key=>{
+    const ab = findAbilityByKey(key);
+    if(!ab) return;
+    ab.mods.forEach(m=>{
+      if(m.k==='delta'){
+        if(result[m.cap]) result[m.cap].qty += m.amount;
+      } else if(m.k==='deltaChoice'){
+        const chosen = (c.abilitaChoices[key] || []);
+        chosen.forEach(cap=>{ if(result[cap]) result[cap].qty += m.amount; });
+      } else if(m.k==='nd'){
+        if(result[m.cap]) result[m.cap].nd = true;
+      } else if(m.k==='typestep'){
+        if(result[m.cap]) result[m.cap].typeIdx = clampIdx(result[m.cap].typeIdx + m.steps);
+      } else if(m.k==='typestepChoice'){
+        const chosen = (c.abilitaChoices[key] || []);
+        chosen.forEach(cap=>{ if(result[cap]) result[cap].typeIdx = clampIdx(result[cap].typeIdx + m.steps); });
+      } else if(m.k==='levelDice'){
+        CAP_KEYS.forEach(kk=>{ if(!result[kk].nd) result[kk].qty = t.livello; });
+      }
+    });
+  });
+  CAP_KEYS.forEach(k=>{ if(result[k].qty <= 0) result[k].nd = true; });
+  return result;
+}
+function formatCapValue(v){
+  if(v.nd) return 'Niente Dadi';
+  return `${v.qty}${DTYPES[v.typeIdx]}${v.asterisco ? '*' : ''}`;
+}
+
+/* =========================================================
+   INIT UI
+   ========================================================= */
+function initVantaggioSelect(){
+  const sel = document.getElementById('vantaggioSel');
+  sel.innerHTML = '';
+  VANTAGGI.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v.nome;
+    opt.textContent = v.costo>0 ? `${v.nome} (${v.costo} spazi)` : v.nome;
+    sel.appendChild(opt);
+  });
+  
+  // Questa riga serve per quando caricheremo il file JSON salvato
+  sel.value = state.vantaggio; 
+  
+  sel.addEventListener('change', ()=>{
+    state.vantaggio = sel.value;
+    updateVantaggioDesc();
+    updateSlotsBadge();
+    renderPrintSheets();
+  });
+}
+function updateVantaggioDesc(){
+  const v = VANTAGGI.find(v=>v.nome===state.vantaggio);
+  const box = document.getElementById('vantaggioDesc');
+  if(v && v.effetto){ box.style.display='block'; box.textContent = v.effetto; }
+  else { box.style.display='none'; }
+}
+
+document.getElementById('bandaNome').addEventListener('input', e=>{
+  state.banda = e.target.value;
+  renderPrintSheets();
+});
+
+function currentVantaggioCosto(){
+  const v = VANTAGGI.find(v=>v.nome===state.vantaggio);
+  return v ? v.costo : 0;
+}
+function usedSlots(){
+  return state.companions.reduce((sum,c)=> sum + CHAR_TYPES[c.tipo].spazi, 0) + currentVantaggioCosto();
+}
+function updateSlotsBadge(){
+  const used = usedSlots();
+  const remaining = 10 - used;
+  const badge = document.getElementById('slotsBadge');
+  document.getElementById('slotsN').textContent = remaining;
+  badge.classList.remove('warn','bad');
+  if(remaining < 0) badge.classList.add('bad');
+  else if(remaining <= 2) badge.classList.add('warn');
+}
+
+/* =========================================================
+   GESTIONE PERSONAGGI (companions)
+   ========================================================= */
+function addCharacter(tipo){
+  const t = CHAR_TYPES[tipo];
+  if(tipo==='spalla'){
+    const spalleCount = state.companions.filter(c=>c.tipo==='spalla').length;
+    const maxSpalle = state.vantaggio === 'Compagnia di Eroi' ? 2 : 1;
+    if(spalleCount >= maxSpalle){
+      alert('La Banda può includere al massimo '+maxSpalle+' Spalla/e con il Vantaggio attuale.');
+      return;
+    }
+  }
+  const nomeDefault = t.label + ' ' + (state.companions.filter(c=>c.tipo===tipo).length + 1);
+  state.companions.push(makeChar(tipo, nomeDefault));
+  renderRoster();
+}
+function removeCharacter(id){
+  state.companions = state.companions.filter(c=>c.id!==id);
+  renderRoster();
+}
+
+let openPanels = new Set();
+
+function renderRoster(){
+  const container = document.getElementById('rosterList');
+  container.innerHTML = '';
+  container.appendChild(renderCharBlock(state.leader, true));
+  state.companions.forEach(c=>{
+    container.appendChild(renderCharBlock(c, false));
+  });
+  updateSlotsBadge();
+  renderPrintSheets();
+}
+
+function renderCharBlock(c, isLeader){
+  const t = CHAR_TYPES[c.tipo];
+  const finalValsHead = computeFinalCapacita(c, t);
+  const block = document.createElement('div');
+  block.className = 'char-block' + (isLeader ? ' leader' : '');
+
+  const head = document.createElement('div');
+  head.className = 'cb-head';
+  head.innerHTML = `
+    <span class="toggle-icon">${openPanels.has(c.id) ? '▾' : '▸'}</span>
+    <span class="tag">${t.label}</span>
+    <input type="text" class="name-input" value="${escapeHtml(c.nome)}" data-id="${c.id}">
+    <span class="spazi">Liv.${t.livello} · ${t.spazi} spazi · Salute ${formatCapValue(finalValsHead['Salute'])}</span>
+    ${isLeader ? '' : `<button class="small danger" data-remove="${c.id}">Rimuovi</button>`}
+  `;
+  head.querySelector('.name-input').addEventListener('click', e=>e.stopPropagation());
+  head.querySelector('.name-input').addEventListener('input', e=>{
+    c.nome = e.target.value;
+    renderPrintSheets();
+  });
+  const rmBtn = head.querySelector('[data-remove]');
+  if(rmBtn) rmBtn.addEventListener('click', e=>{ e.stopPropagation(); removeCharacter(c.id); });
+  head.addEventListener('click', ()=>{
+    if(openPanels.has(c.id)) openPanels.delete(c.id); else openPanels.add(c.id);
+    renderRoster();
+  });
+
+  const body = document.createElement('div');
+  body.className = 'cb-body' + (openPanels.has(c.id) ? ' open' : '');
+  body.appendChild(renderCapacitaGrid(c, t));
+  body.appendChild(renderAbilitaSection(c, t));
+  const slots = spellSlots(c, t);
+  if(slots > 0){
+    body.appendChild(renderSpellbookSection(c, t, slots));
+  } else if(c.incantesimi.length){
+    c.incantesimi = []; // l'abilità da incantatore è stata rimossa: svuota il grimorio
+  }
+  body.appendChild(renderNotesField(c));
+
+  block.appendChild(head);
+  block.appendChild(body);
+  return block;
+}
+
+function renderCapacitaGrid(c, t){
+  const wrap = document.createElement('div');
+  const qtyUsed = CAP_KEYS.filter(k=>c.capacita[k].qty==='high').length;
+  const typeUsed = CAP_KEYS.filter(k=>c.capacita[k].type==='high').length;
+  const finalVals = computeFinalCapacita(c, t);
+
+  const note = document.createElement('div');
+  note.className = 'cap-count-note';
+  let noteText = '';
+  if(t.qtyChoice){
+    noteText += `Numero dadi: assegna ${t.qtyHighCount}×${t.qtyHigh} dadi e ${6-t.qtyHighCount}×${t.qtyLow} dadi (selezionati ${qtyUsed}/${t.qtyHighCount}). `;
+  } else {
+    noteText += `Numero dadi fisso: ${t.qtyHigh} per tutte le Capacità. `;
+  }
+  if(t.typeChoice){
+    noteText += `Tipo dado: assegna ${t.typeHighCount}×${t.typeHigh} e ${6-t.typeHighCount}×${t.typeLow} (selezionati ${typeUsed}/${t.typeHighCount}).`;
+  } else {
+    noteText += `Tipo dado fisso: ${t.typeHigh} per tutte le Capacità.`;
+  }
+  note.textContent = noteText;
+  wrap.appendChild(note);
+
+  const grid = document.createElement('div');
+  grid.className = 'capacita-grid';
+  CAP_KEYS.forEach(k=>{
+    const sel = c.capacita[k];
+    const isQtyHigh = sel.qty==='high';
+    const isTypeHigh = sel.type==='high';
+    const item = document.createElement('div');
+    item.className = 'cap-item';
+    item.innerHTML = `
+      <span class="cap-name">${k}</span>
+      <span class="cap-dice">Finale: ${formatCapValue(finalVals[k])}</span>
+      ${t.qtyChoice ? `
+        <div class="cap-toggle-label">Dadi</div>
+        <div class="cap-toggle">
+          <button class="tb-qty-high ${isQtyHigh?'active':''}">${t.qtyHigh}</button>
+          <button class="tb-qty-low ${!isQtyHigh?'active':''}">${t.qtyLow}</button>
+        </div>` : ''}
+      ${t.typeChoice ? `
+        <div class="cap-toggle-label">Tipo</div>
+        <div class="cap-toggle">
+          <button class="tb-type-high ${isTypeHigh?'active':''}">${t.typeHigh}</button>
+          <button class="tb-type-low ${!isTypeHigh?'active':''}">${t.typeLow}</button>
+        </div>` : ''}
+    `;
+    if(t.qtyChoice){
+      item.querySelector('.tb-qty-high').addEventListener('click', ()=>{
+        const used = CAP_KEYS.filter(kk=>c.capacita[kk].qty==='high').length;
+        if(!isQtyHigh && used >= t.qtyHighCount){
+          alert(`Hai già assegnato tutti i ${t.qtyHighCount} dadi "${t.qtyHigh}" disponibili.`);
+          return;
+        }
+        c.capacita[k].qty = 'high';
+        renderRoster();
+      });
+      item.querySelector('.tb-qty-low').addEventListener('click', ()=>{
+        c.capacita[k].qty = 'low';
+        renderRoster();
+      });
+    }
+    if(t.typeChoice){
+      item.querySelector('.tb-type-high').addEventListener('click', ()=>{
+        const used = CAP_KEYS.filter(kk=>c.capacita[kk].type==='high').length;
+        if(!isTypeHigh && used >= t.typeHighCount){
+          alert(`Hai già assegnato tutti i ${t.typeHighCount} dadi "${t.typeHigh}" disponibili.`);
+          return;
+        }
+        c.capacita[k].type = 'high';
+        renderRoster();
+      });
+      item.querySelector('.tb-type-low').addEventListener('click', ()=>{
+        c.capacita[k].type = 'low';
+        renderRoster();
+      });
+    }
+    grid.appendChild(item);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function renderAbilitaSection(c, t){
+  const wrap = document.createElement('div');
+  wrap.className = 'abilita-section';
+  const h = document.createElement('h4');
+  h.textContent = `Abilità (scegli fino a ${t.maxAbilita}, livello massimo ${t.maxLivelloAbilita})`;
+  wrap.appendChild(h);
+
+  const pool = document.createElement('div');
+  pool.className = 'ability-pool';
+  for(let lvl=1; lvl<=t.maxLivelloAbilita; lvl++){
+    ABILITA[lvl].forEach(([nome, eff, mods, restrict])=>{
+      if(restrict && !restrict.includes(c.tipo)) return;
+      const key = abilityKey(lvl, nome);
+      const checked = c.abilita.includes(key);
+      const label = document.createElement('label');
+      label.className = 'ability-opt';
+      label.innerHTML = `
+        <input type="checkbox" ${checked?'checked':''}>
+        <span>
+          <b>${nome} <span class="lvl">Liv.${lvl}</span></b>
+          <span class="eff">${eff}</span>
+        </span>
+      `;
+      label.querySelector('input').addEventListener('change', e=>{
+        if(e.target.checked){
+          if(c.abilita.length >= t.maxAbilita){
+            alert('Numero massimo di Abilità raggiunto ('+t.maxAbilita+').');
+            e.target.checked = false;
+            return;
+          }
+          c.abilita.push(key);
+          const ab = findAbilityByKey(key);
+          ab.mods.forEach(m=>{
+            if(m.k==='deltaChoice' || m.k==='typestepChoice'){
+              c.abilitaChoices[key] = m.options.slice(0, m.count);
+            }
+          });
+        } else {
+          c.abilita = c.abilita.filter(k2=>k2!==key);
+          delete c.abilitaChoices[key];
+        }
+        renderRoster();
+      });
+      pool.appendChild(label);
+    });
+  }
+  wrap.appendChild(pool);
+
+  const chips = document.createElement('div');
+  chips.className = 'ability-selected-list';
+  c.abilita.forEach(key=>{
+    const ab = findAbilityByKey(key);
+    if(!ab) return;
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = ab.nome;
+    chips.appendChild(chip);
+  });
+  wrap.appendChild(chips);
+
+  wrap.appendChild(renderChoiceControls(c));
+  return wrap;
+}
+
+function renderChoiceControls(c){
+  const wrap = document.createElement('div');
+  c.abilita.forEach(key=>{
+    const ab = findAbilityByKey(key);
+    if(!ab) return;
+    const choiceMod = ab.mods.find(m=>m.k==='deltaChoice' || m.k==='typestepChoice');
+    if(!choiceMod) return;
+    const row = document.createElement('div');
+    row.className = 'choice-row';
+    const label = document.createElement('span');
+    label.className = 'choice-label';
+    label.textContent = `${ab.nome} → assegna a:`;
+    row.appendChild(label);
+    const current = c.abilitaChoices[key] || [];
+    for(let i=0; i<choiceMod.count; i++){
+      const sel = document.createElement('select');
+      choiceMod.options.forEach(opt=>{
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        if(current[i]===opt) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', e=>{
+        const arr = c.abilitaChoices[key] || [];
+        arr[i] = e.target.value;
+        c.abilitaChoices[key] = arr;
+        renderRoster();
+      });
+      row.appendChild(sel);
+    }
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderSpellbookSection(c, t, slots){
+  const wrap = document.createElement('div');
+  wrap.className = 'abilita-section spellbook-section';
+  const h = document.createElement('h4');
+  const usedCount = c.incantesimi.length;
+  h.textContent = `Libro degli Incantesimi (scegli fino a ${slots}, livello massimo ${t.livello}) — selezionati ${usedCount}/${slots}`;
+  wrap.appendChild(h);
+
+  const pool = document.createElement('div');
+  pool.className = 'ability-pool spell-pool';
+  Object.keys(SPELLS).forEach(branchKey=>{
+    const branch = SPELLS[branchKey];
+    for(let lvl=2; lvl<=t.livello; lvl++){
+      (branch[lvl]||[]).forEach(spell=>{
+        const checked = c.incantesimi.includes(spell.nome);
+        const label = document.createElement('label');
+        label.className = 'ability-opt spell-opt';
+        label.style.borderLeft = `4px solid ${branch.colore}`;
+        label.innerHTML = `
+          <input type="checkbox" ${checked?'checked':''}>
+          <span>
+            <b>${spell.nome} <span class="lvl">Liv.${lvl} · ${branch.label} · ${spell.tipo}</span></b>
+            <span class="eff">${spell.bersaglio} — Prova: ${spell.prova}. ${spell.effetto}</span>
+          </span>
+        `;
+        label.querySelector('input').addEventListener('change', e=>{
+          if(e.target.checked){
+            if(c.incantesimi.length >= slots){
+              alert('Numero massimo di Incantesimi raggiunto ('+slots+').');
+              e.target.checked = false;
+              return;
+            }
+            c.incantesimi.push(spell.nome);
+          } else {
+            c.incantesimi = c.incantesimi.filter(s=>s!==spell.nome);
+          }
+          renderRoster();
+        });
+        pool.appendChild(label);
+      });
+    }
+  });
+  wrap.appendChild(pool);
+
+  const chips = document.createElement('div');
+  chips.className = 'ability-selected-list';
+  c.incantesimi.forEach(nome=>{
+    const sp = findSpell(nome);
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.style.background = sp ? sp.colore : '';
+    chip.textContent = nome;
+    chips.appendChild(chip);
+  });
+  wrap.appendChild(chips);
+  return wrap;
+}
+
+function renderNotesField(c){
+  const wrap = document.createElement('div');
+  wrap.className = 'notes-field';
+  wrap.style.marginTop = '14px';
+  wrap.innerHTML = `<label style="font-family:'Special Elite',monospace;font-size:10.5px;text-transform:uppercase;opacity:.75;">Equipaggiamento / note</label>`;
+  const ta = document.createElement('textarea');
+  ta.value = c.note;
+  ta.placeholder = "Es. Tommy-gun, fedora, giubbotto antiproiettile...";
+  ta.addEventListener('input', e=>{ c.note = e.target.value; renderPrintSheets(); });
+  wrap.appendChild(ta);
+  return wrap;
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* =========================================================
+   STAMPA — GENERAZIONE CARTE 63x88mm
+   ========================================================= */
+function buildCardHtml(c){
+  const t = CHAR_TYPES[c.tipo];
+  const finalVals = computeFinalCapacita(c, t);
+  const capRows = CAP_KEYS.map(k=>{
+    return `<div><span>${k}</span><span class="cv">${formatCapValue(finalVals[k])}</span></div>`;
+  }).join('');
+
+  // Sulla carta, "Talento Innato" è ridondante (basta il Grimorio) e "Arte Magica" viene
+  // mostrata in forma compatta: risparmia spazio preziosa per gli incantesimi veri e propri.
+  const abilitaHtml = c.abilita.length
+    ? c.abilita.map(key=>{
+        const ab = findAbilityByKey(key);
+        if(!ab) return '';
+        if(ab.nome === 'Talento Innato') return '';
+        if(ab.nome === 'Arte Magica') return `<div class="ab-item"><b>Arte Magica</b> — Rissa/Sparo Intralciate</div>`;
+        return `<div class="ab-item"><b>${ab.nome}</b> — ${ab.effetto}</div>`;
+      }).join('')
+    : '';
+  const abilitaHtmlFinal = abilitaHtml || '<div class="ab-item" style="opacity:.5;">Nessuna abilità selezionata</div>';
+
+  const grimorioHtml = c.incantesimi.length
+    ? `<div class="grimorio-box"><div class="gr-title">Libro degli Incantesimi</div>${c.incantesimi.map(nome=>{
+        const sp = findSpell(nome);
+        if(!sp) return '';
+        return `<div class="sp-item" style="border-left:2px solid ${sp.colore}"><b>${sp.nome}</b> <span class="sp-meta">${sp.bersaglio}, ${sp.prova}</span> — ${sp.breve}</div>`;
+      }).join('')}</div>`
+    : '';
+
+  return `
+    <div class="pcard">
+      <div class="band-banner">${escapeHtml(state.banda || 'La Mia Banda')}</div>
+      <div class="name-banner">${escapeHtml(c.nome)}</div>
+      <div class="type-row"><span>${t.label}</span><span>Livello ${t.livello}</span></div>
+      <div class="health-row"><span>Salute</span><span>${formatCapValue(finalVals['Salute'])}</span></div>
+      <div class="cap-table">${capRows}</div>
+      <div class="flex-content">
+        <div class="abilita-box">${abilitaHtmlFinal}</div>
+        ${grimorioHtml}
+      </div>
+      <div class="notes-box">${c.note ? escapeHtml(c.note) : '&nbsp;'}</div>
+      <div class="footer-strip">PULP ALLEY · BAND BUILDER</div>
+    </div>
+  `;
+}
+
+function renderPrintSheets(){
+  const all = [state.leader, ...state.companions];
+  const perSheet = 9; // griglia 3x3
+  const container = document.getElementById('sheetsContainer');
+  container.innerHTML = '';
+  for(let i=0; i<all.length; i+=perSheet){
+    const chunk = all.slice(i, i+perSheet);
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = chunk.map(buildCardHtml).join('');
+    container.appendChild(sheet);
+  }
+  if(all.length===0){
+    container.innerHTML = '<p class="screen-only" style="color:white;text-align:center;">Nessun personaggio da stampare.</p>';
+  }
+}
+
+function doPrint(){
+  renderPrintSheets();
+  try{
+    if(typeof window.print !== 'function'){
+      throw new Error('window.print non disponibile');
+    }
+    window.print();
+  } catch(err){
+    alert('Impossibile aprire la finestra di stampa da qui (probabilmente sei nell\'anteprima integrata del file). Apri il file .html scaricato direttamente in una scheda del browser e usa Ctrl+P / Cmd+P.');
+  }
+}
+
+/* =========================================================
+   SALVATAGGIO E CARICAMENTO (JSON)
+   ========================================================= */
+
+// Genera e scarica il file JSON con tutti i dati della banda
+function exportBanda() {
+  const dataStr = JSON.stringify({
+    banda: state.banda,
+    vantaggio: state.vantaggio,
+    leader: state.leader,
+    companions: state.companions,
+    idCounter: idCounter
+  }, null, 2);
+  
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  
+  // Crea un nome file pulito basato sul nome della banda inserito nell'input
+  const exportFileDefaultName = (state.banda || 'banda_pulp_alley')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/gi, '_') + '.json';
+  
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+}
+
+// Riceve il file JSON caricato dall'utente e ripristina l'applicazione
+function importBanda(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedState = JSON.parse(e.target.result);
+      
+      // Controllo di sicurezza per verificare che il JSON sia corretto
+      if (!importedState.leader || !Array.isArray(importedState.companions)) {
+        throw new Error("Il file non sembra una banda valida di Pulp Alley.");
+      }
+      
+      // Ripristina lo stato globale dell'applicazione
+      state.banda = importedState.banda || "Nuova Banda";
+      state.vantaggio = importedState.vantaggio || "— Nessuno —";
+      state.leader = importedState.leader;
+      state.companions = importedState.companions;
+      idCounter = importedState.idCounter || (state.companions.length + 2);
+      
+      // Aggiorna i campi di testo e i menu a tendina dell'interfaccia
+      document.getElementById('bandaNome').value = state.banda;
+      document.getElementById('vantaggioSel').value = state.vantaggio;
+      
+      // Riesegue i calcoli e ridisegna tutto l'editor e l'anteprima di stampa
+      updateVantaggioDesc();
+      updateSlotsBadge();
+      renderRoster();
+      
+      alert("Banda caricata correttamente!");
+    } catch (err) {
+      alert("Errore durante il caricamento del file: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  // Svuota il valore del tasto file per permettere di ricaricare lo stesso file se modificato
+  event.target.value = '';
+}
+
+/* =========================================================
+   AVVIO
+   ========================================================= */
+initVantaggioSelect();
+updateVantaggioDesc();
+renderRoster();
+renderPrintSheets();
+</script>
+</body>
+</html>
