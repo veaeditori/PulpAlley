@@ -484,6 +484,18 @@ button.danger:hover{background:var(--danger); color:var(--paper);}
     margin: 0 !important; /* Gestito internamente dal padding del .sheet */
   }
 }
+/* ---------- COLORI PER LIVELLO ABILITÀ ---------- */
+/* Bordi nel selettore delle abilità */
+.ability-opt.lvl-1 { border-left: 4px solid #3b5a6b; }
+.ability-opt.lvl-2 { border-left: 4px solid #916922; }
+.ability-opt.lvl-3 { border-left: 4px solid #b05121; }
+.ability-opt.lvl-4 { border-left: 4px solid #8a2323; }
+
+/* Sfondi per le chip delle abilità selezionate */
+.chip.lvl-1 { background-color: #3b5a6b !important; }
+.chip.lvl-2 { background-color: #916922 !important; }
+.chip.lvl-3 { background-color: #b05121 !important; }
+.chip.lvl-4 { background-color: #8a2323 !important; }
 </style>
 </head>
 <body>
@@ -1106,7 +1118,10 @@ function renderAbilitaSection(c, t){
       const key = abilityKey(lvl, nome);
       const checked = c.abilita.includes(key);
       const label = document.createElement('label');
-      label.className = 'ability-opt';
+      
+      // MODIFICA: Aggiungiamo la classe "lvl-X" all'opzione nel pool
+      label.className = `ability-opt lvl-${lvl}`;
+      
       label.innerHTML = `
         <input type="checkbox" ${checked?'checked':''}>
         <span>
@@ -1145,7 +1160,9 @@ function renderAbilitaSection(c, t){
     const ab = findAbilityByKey(key);
     if(!ab) return;
     const chip = document.createElement('span');
-    chip.className = 'chip';
+    
+    // MODIFICA: Assegniamo la classe "lvl-X" anche alla chip riassuntiva
+    chip.className = `chip lvl-${ab.livello}`;
     chip.textContent = ab.nome;
     chips.appendChild(chip);
   });
