@@ -556,7 +556,7 @@ button.danger:hover{background:var(--danger); color:var(--paper);}
 
   </div>
 
-  <div class="footer-note screen-only">Prototipo non ufficiale · dati regole tratti dal manuale Pulp Alley Deluxe (VEA Editori) · uso personale . Versione 1.0</div>
+  <div class="footer-note screen-only">Prototipo non ufficiale · dati regole tratti dal manuale Pulp Alley Deluxe (VEA Editori) · uso personale</div>
 </div>
 
 <script>
@@ -1285,6 +1285,36 @@ function escapeHtml(s){
 /* =========================================================
    STAMPA — GENERAZIONE CARTE 63x88mm
    ========================================================= */
+function buildVantaggioCardHtml() {
+  const v = VANTAGGI.find(val => val.nome === state.vantaggio);
+  // Se non c'è un vantaggio reale o è impostato su "Nessuno", non generiamo la carta
+  if (!v || !v.effetto || state.vantaggio === "— Nessuno —") {
+    return '';
+  }
+
+  return `
+    <div class="pcard" style="border-color: var(--brass); background: #fdfaf2;">
+      <div class="band-banner" style="background: var(--brass); color: var(--ink); font-weight: bold;">
+        VANTAGGIO DELLA BANDA
+      </div>
+      <div class="name-banner" style="background: var(--ink); color: var(--brass-light); text-align: center;">
+        ${escapeHtml(v.nome)}
+      </div>
+      <div class="type-row" style="background: var(--paper-dark); justify-content: center;">
+        <span>Costo: ${v.costo} Spazi Banda</span>
+      </div>
+      <div class="flex-content" style="padding: 3mm 2.5mm;">
+        <div style="font-family: 'Special Elite', monospace; font-size: 6.2pt; line-height: 1.3; text-align: justify; color: var(--ink);">
+          ${escapeHtml(v.effetto)}
+        </div>
+      </div>
+      <div class="notes-box" style="border-top: 0.3mm dashed var(--brass); font-size: 5pt; text-align: center; opacity: 0.7;">
+        Banda: ${escapeHtml(state.banda || 'La Mia Banda')}
+      </div>
+      <div class="footer-strip" style="background: var(--brass); color: var(--ink);">PULP ALLEY · REGOLA SPECIALE</div>
+    </div>
+  `;
+}
 function buildCardHtml(c){
   const t = CHAR_TYPES[c.tipo];
   const finalVals = computeFinalCapacita(c, t);
@@ -1335,14 +1365,26 @@ function renderPrintSheets(){
   const perSheet = 9; // griglia 3x3
   const container = document.getElementById('sheetsContainer');
   container.innerHTML = '';
-  for(let i=0; i<all.length; i+=perSheet){
-    const chunk = all.slice(i, i+perSheet);
+  
+  // Generiamo l'HTML di tutte le carte dei personaggi
+  let cardHtmlArray = all.map(buildCardHtml);
+  
+  // Se c'è un vantaggio attivo, generiamo la sua carta e la inseriamo in cima alla lista
+  const vantaggioCard = buildVantaggioCardHtml();
+  if (vantaggioCard) {
+    cardHtmlArray.unshift(vantaggioCard);
+  }
+
+  // Suddividiamo l'intero array di carte in blocchi da 9 per ogni foglio A4
+  for(let i=0; i<cardHtmlArray.length; i+=perSheet){
+    const chunk = cardHtmlArray.slice(i, i+perSheet);
     const sheet = document.createElement('div');
     sheet.className = 'sheet';
-    sheet.innerHTML = chunk.map(buildCardHtml).join('');
+    sheet.innerHTML = chunk.join('');
     container.appendChild(sheet);
   }
-  if(all.length===0){
+  
+  if(cardHtmlArray.length === 0){
     container.innerHTML = '<p class="screen-only" style="color:white;text-align:center;">Nessun personaggio da stampare.</p>';
   }
 }
