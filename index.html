@@ -413,9 +413,12 @@ button.danger:hover{background:var(--danger); color:var(--paper);}
   font-family:'Oswald',sans-serif; font-size:6.8pt; font-weight:700;
   text-transform:uppercase; letter-spacing:.04em; color:var(--brass); margin-bottom:0.8mm;
 }
-.pcard .grimorio-box .sp-item{margin-bottom:0.6mm; padding-left:1mm;}
-.pcard .grimorio-box .sp-item b{font-family:'Oswald',sans-serif; font-size:6.8pt; text-transform:uppercase;}
-.pcard .grimorio-box .sp-meta{opacity:0.7; font-style:italic; font-size:5.8pt;}
+.pcard .grimorio-box .sp-name-list{ display:flex; flex-direction:column; gap:0.7mm; }
+.pcard .grimorio-box .sp-name-item{
+  padding-left:1.4mm;
+  font-family:'Oswald',sans-serif; font-size:7.2pt; font-weight:600;
+  text-transform:uppercase; letter-spacing:.01em;
+}
 .pcard .notes-box{
   padding:0.9mm 2.5mm 1.1mm;
   font-family:'Special Elite', monospace;
@@ -437,6 +440,25 @@ button.danger:hover{background:var(--danger); color:var(--paper);}
   text-overflow:ellipsis;
 }
 .pcard .footer-strip .fs-banda{color:var(--paper); text-transform:uppercase;}
+
+/* ---------- SPELL CARD (una carta per Incantesimo per personaggio) ---------- */
+.pcard.spell-card .spell-meta-table{
+  padding:1.5mm 3mm;
+  display:flex; flex-direction:column; gap:1mm;
+  font-size:7.2pt;
+  font-family:'Roboto Slab', serif;
+  border-bottom:0.3mm solid var(--ink);
+}
+.pcard.spell-card .spell-meta-table div{ display:flex; justify-content:space-between; gap:3mm; }
+.pcard.spell-card .spell-meta-table span:first-child{
+  font-family:'Special Elite',monospace; opacity:0.65; text-transform:uppercase; font-size:6.4pt;
+}
+.pcard.spell-card .spell-meta-table span:last-child{ font-weight:600; text-align:right; }
+.pcard.spell-card .spell-effect-box{
+  flex:1; min-height:0; overflow:hidden;
+  padding:2mm 3mm;
+  font-size:7.6pt; line-height:1.4;
+}
 
 /* ---------- BANDA CARD (Vantaggio + Soci) ---------- */
 .pcard.banda-card .flex-content{ gap:1.5mm; padding:1.3mm 2.5mm; }
@@ -552,7 +574,7 @@ button.danger:hover{background:var(--danger); color:var(--paper);}
 <div class="app">
 
   <header class="masthead">
-    <div class="eyebrow">VEA Editori PRESS ·  ver.1.5.1</div>
+    <div class="eyebrow">VEA Editori PRESS ·  ver.1.6.1</div>
     <h1>Pulp Alley — Band Builder</h1>
     <div class="tagline">Costruisci la tua Banda · genera le carte pronte per la stampa, 63×88mm</div>
   </header>
@@ -641,12 +663,12 @@ const CHAR_TYPES = {
 };
 
 const ABILITA = {
-  1:[["Acquatico","Supera pericoli in acqua profonda; LdV 12\""],
+  1:[["Acquatico","Supera pericoli in acqua profonda; LdV 12\"; ignora -1 combattimento in acqua"],
      ["Agile","+1 dado Schivata", [{k:'delta',cap:'Schivata',amount:1}]],
-     ["Alato","Vola fino a 16\""],
+     ["Alato","Vola fino a 16\", ignora scenici/personaggi; niente Sparo in volo nella stessa attivazione"],
      ["Animale","+1 dado a due Capacità, Sparo a Niente Dadi", [{k:'deltaChoice',amount:1,count:2,options:['Rissa','Schivata','Forza','Finezza','Astuzia']},{k:'nd',cap:'Sparo'}]],
      ["Astuto","Rilancia Schivata o Astuzia (1/turno)"],
-     ["Bestia","Non esegui azioni. Scegli 2 Abilità gratuite qui sotto (non contano nel limite normale).", [{k:'grantAbility',count:2,options:['Animale','Acquatico','Grosso','Feroce','Irragionevole','Rianimato','Scattante','Sciame','Alato']}], null, "Niente azioni; 2 Abilità gratuite (sotto)."],
+     ["Bestia","Non esegui azioni. Scegli 2 Abilità gratuite qui sotto (non contano nel limite normale).", [{k:'grantAbility',count:2,options:['Animale','Acquatico','Grosso','Feroce','Irragionevole','Rianimato','Scattante','Sciame','Alato']}], null, "Non esegui azioni."],
      ["Bruto","Rilancia Rissa o Forza (1/turno)"],
      ["Cecchino","+1 dado Sparo", [{k:'delta',cap:'Sparo',amount:1}]],
      ["Celato","Vince i pareggi nei test di individuazione"],["Corazzato","+1 dado ai test Salute; niente corse"],
@@ -662,51 +684,51 @@ const ABILITA = {
      ["Pestaggio","Scarta per +1 dado Rissa o Forza"],
      ["Pugile","+1 dado a due Capacità, Sparo a Niente Dadi", [{k:'deltaChoice',amount:1,count:2,options:['Rissa','Schivata','Forza','Finezza','Astuzia']},{k:'nd',cap:'Sparo'}]],
      ["Raffica Corta","Azione: sagoma Raffica Corta"],
-     ["Rianimato","Auto-supera test Salute a 1 dado; niente Schivata", [{k:'nd',cap:'Schivata'}]],
+     ["Rianimato","Auto-supera test Salute a 1 dado; niente Schivata; non blocca; muove max 6\" (tranne carica)", [{k:'nd',cap:'Schivata'}]],
      ["Sagace","+1 dado Finezza", [{k:'delta',cap:'Finezza',amount:1}]],
      ["Scattante","Muove 16\" invece di 12\""],
      ["Sciame","Gioca un pericolo dalla mano su un nemico a contatto"],
-     ["Stupido","Non esegui azioni. Scegli 2 Abilità gratuite qui sotto (non contano nel limite normale).", [{k:'grantAbility',count:2,options:['Acquatico','Bruto','Feroce','Cecchino','Sveglio','Pestaggio','Inganno','Alato']}], null, "Niente azioni; 2 Abilità gratuite (sotto)."],
+     ["Stupido","Non esegui azioni. Scegli 2 Abilità gratuite qui sotto (non contano nel limite normale).", [{k:'grantAbility',count:2,options:['Acquatico','Bruto','Feroce','Cecchino','Sveglio','Pestaggio','Inganno','Alato']}], null, "Non esegui azioni."],
      ["Subdolo","+1 dado Schivata e Finezza, Rissa a Niente Dadi", [{k:'delta',cap:'Schivata',amount:1},{k:'delta',cap:'Finezza',amount:1},{k:'nd',cap:'Rissa'}]],
      ["Sveglio","Rilancia Sparo o Finezza (1/turno)"],
      ["Tenebroso","+1 dado a test di individuazione contrapposti"],
-     ["Vero Credente","Sparo Niente Dadi; le altre Capacità usano dadi pari al Livello del personaggio.", [{k:'nd',cap:'Sparo'},{k:'levelDice'}], ['spalla','alleato','seguace']]],
-  2:[["Acuto","Ravvicinata 12\", lunga oltre 48\""],["Combattimento Ravvicinato","Niente Sparo oltre 12\""],
-     ["Debole di Cuore","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). I Test di Recupero sono Compromessi. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "2 Abilità Liv.1 gratuite (sotto); Recupero Compromesso."],["Dottore","Azione: Astuzia per ripetere Test di Recupero"],
-     ["Esitare","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Le tue Azioni sono Compromesse. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "2 Abilità Liv.1 gratuite (sotto); Azioni Compromesse."],["Esplosione","Azione: sagoma Esplosione 3\""],
-     ["Fumogeno","Azione: sagoma area difficile che blocca LdV"],
+     ["Vero Credente","Sparo Niente Dadi; altre Capacità = dadi pari al Livello; ignora tutti i modificatori (tranne Carte Fortuna); mai altre Abilità", [{k:'nd',cap:'Sparo'},{k:'levelDice'},{k:'exclusive'}], ['spalla','alleato','seguace']]],
+  2:[["Acuto","Ravvicinata 12\", lunga oltre 48\""],["Combattimento Ravvicinato","Niente Sparo oltre 12\"; 1/turno scarta carta per +1 dado Rissa o Sparo"],
+     ["Debole di Cuore","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). I Test di Recupero sono Compromessi. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "I Test di Recupero sono Compromessi."],["Dottore","Azione: Astuzia su un compagno A Terra in contatto, per ripetere il Test di Recupero"],
+     ["Esitare","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Le tue Azioni sono Compromesse. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "Le tue Azioni sono Compromesse."],["Esplosione","Azione: sagoma Esplosione 3\""],
+     ["Fumogeno","Azione: sagoma 3\" entro 12\", area difficile/blocca LdV; sparisce a fine turno"],
      ["Grosso","+1 tipo dado Salute/Forza, -1 tipo dado Schivata/Finezza", [{k:'typestep',cap:'Salute',steps:1},{k:'typestep',cap:'Forza',steps:1},{k:'typestep',cap:'Schivata',steps:-1},{k:'typestep',cap:'Finezza',steps:-1}]],
-     ["Impetuoso","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Non puoi giocare carte Fortuna durante le tue attivazioni. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "2 Abilità Liv.1 gratuite (sotto); niente carte Fortuna in attivazione."],["Implacabile","Movimento extra dopo A Terra/KO nemico"],
-     ["Innocuo","Non attaccabile oltre 6\"; non attacca; Rissa e Sparo a Niente Dadi", [{k:'nd',cap:'Rissa'},{k:'nd',cap:'Sparo'}]],["Intralcio","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Scegli 2 Capacità da Intralciare (segnale a parte). Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "2 Abilità Liv.1 gratuite (sotto); 2 Capacità Intralciate."],
+     ["Impetuoso","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Non puoi giocare carte Fortuna durante le tue attivazioni. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "Non puoi giocare carte Fortuna durante le tue attivazioni."],["Implacabile","Dopo aver mandato un nemico A Terra/KO in rissa, muovi max 3\" verso di lui; niente altro combattimento"],
+     ["Innocuo","Non attaccabile oltre 6\"; non attacca; Rissa e Sparo a Niente Dadi", [{k:'nd',cap:'Rissa'},{k:'nd',cap:'Sparo'}]],["Intralcio","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Scegli 2 Capacità da Intralciare (segnale a parte). Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "Scegli 2 Capacità da Intralciare (segnale a parte)."],
      ["Intrepido","Disimpegno da 1\" a 3\""],["Intuizione","Sostituisce una sfida rivelata"],
-     ["Inventore","Test Astuzia per equipaggiare un bene gratis"],["Mutaforma","Profilo alternativo"],
-     ["Nobiltà","Non va MAI KO per Recupero fallito"],["Raffica Lunga","Azione: sagoma Raffica Lunga"],
-     ["Sfortunato","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Quando un avversario gioca l'effetto di una carta durante la tua attivazione, pesca 1 carta Fortuna. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "2 Abilità Liv.1 gratuite (sotto); avversario pesca se gioca una carta."],["Shock","Test Salute area, spinta se fallito"],
-     ["Soprannaturale","Nemici combattono con Astuzia/Finezza"],["Spericolato","+1 bonus a un test di pericolo (1/turno)"],
-     ["Trascinare","Porta il nemico a contatto dopo sparatoria"],
+     ["Inventore","Test Astuzia per equipaggiare un bene gratis"],["Mutaforma","Crea un profilo alternativo; azione o (se ingaggiato) automatico a inizio attivazione per trasformarti; il dado Salute non cambia tipo se sei ferito quando ti trasformi"],
+     ["Nobiltà","Non va KO per Recupero fallito; nemico a contatto può comunque finirti come azione (sfida a caso)"],["Raffica Lunga","Azione: sagoma Raffica Lunga"],
+     ["Sfortunato","Scegli 2 Abilità di Livello 1 gratuite qui sotto (non contano nel limite normale). Quando un avversario gioca l'effetto di una carta durante la tua attivazione, pesca 1 carta Fortuna. Incompatibile con Abilità che impediscono azioni o riducono Capacità a Niente Dadi.", [{k:'grantAbility',count:2,options:["Acquatico", "Agile", "Alato", "Animale", "Astuto", "Bestia", "Bruto", "Cecchino", "Celato", "Corazzato", "Feroce", "Forzuto", "Furbo", "In Sella", "Inganno", "Ingegnoso", "Irragionevole", "Mostro", "Organizzato", "Ostinato", "Pestaggio", "Pugile", "Raffica Corta", "Rianimato", "Sagace", "Scattante", "Sciame", "Stupido", "Subdolo", "Sveglio", "Tenebroso", "Vero Credente"]}], null, "Quando un avversario gioca l'effetto di una carta durante la tua attivazione, pesca 1 carta Fortuna."],["Shock","Test Salute area, spinta se fallito"],
+     ["Soprannaturale","Nemici combattono con Astuzia/Finezza (a scelta loro); niente Sparo oltre 12\"; muove max 6\" (tranne carica)"],["Spericolato","+1 bonus a un test di pericolo (1/turno)"],
+     ["Trascinare","Se infliggi 2+ colpi in sparatoria, porta il nemico a contatto; niente altro combattimento"],
      ["Canalizzatore","(Incantatori) Incanalando, scarta qualsiasi carta: non serve l'icona corrispondente."],
-     ["Talento Innato","Diventi Incantatore (1 incantesimo nel Libro degli Incantesimi)."],
+     ["Talento Innato","Diventi Incantatore (1 incantesimo nel Libro degli Incantesimi).", [], null, "Diventi Incantatore."],
      ["Arte Magica","Diventi Incantatore. Rissa e Sparo sono Intralciate."],
-     ["Battimago","(Incantatori) Rissa e Sparo non Intralciate dall'Abilità Arte Magica."],
+     ["Mago Guerriero","(Incantatori) Rissa e Sparo non Intralciate dall'Abilità Arte Magica."],
      ["Selvaggio","(Incantatori) Incanali pescando la prima carta Fortuna invece di scartare: +1 se l'icona combacia."]],
   3:[["Accessoriato","Ignora la rottura di un attrezzo"],["Accurato","Non limitato al nemico più vicino (sparo)"],
      ["Aiuto","+1 dado sfida a un compagno entro 6\""],["Arguto","Riduci dado per +2 dadi Forza/Finezza/Astuzia"],
      ["Attacco Rapido","Riduci dado Rissa per +2 dadi Rissa"],["Capitano","+1 Equipaggiamento per veicoli"],
      ["Colpo Rapido","Riduci dado Sparo per +2 dadi ravvicinati"],["Deduttivo","Azione: pesca una carta Fortuna"],
      ["Doppia Pistola","Sparatoria extra sullo stesso nemico"],["Selvaggio","Rissa extra sullo stesso nemico"],
-     ["Grinta","Ignora penalità combattimenti multipli (Rissa)"],["Guardia del Corpo","Scambia posto col Leader attaccato", [], ['spalla']],
+     ["Grinta","Ignora penalità combattimenti multipli (Rissa)"],["Guardia del Corpo","Scambia posto col Leader attaccato, se entro 3\"", [], ['spalla']],
      ["Indomito","Ripete un Test di Recupero per turno"],["Muscoli d'Acciaio","Rissa/Forza non influenzate dalle ferite"],
-     ["Paralizzante","Test Forza: blocca il movimento del bersaglio"],["Portata","Usa Rissa come Sparo entro 3\""],
+     ["Paralizzante","Azione: Forza contrapposta, nemico entro 12\" LdV; se vinci, non si muove"],["Portata","Usa Rissa come Sparo entro 3\""],
      ["Raffinato","Sparo/Finezza non influenzate dalle ferite"],["Tecnofilo","+1 Equipaggiamento per modifiche"],
      ["Scaltro","Schivata/Finezza non influenzate dalle ferite"],["Schivata Rapida","Riduci dado Schivata per +2 dadi Schivata"],
      ["Sfacciato","Non limitato al nemico più vicino (carica)"],["Sguardo Spaventoso","Test Finezza: blocca corsa/sparo del bersaglio"],
      ["Spietato","Spara in una rissa con un amico coinvolto"],["Tiratore Scelto","I bersagli non hanno tiro salvezza copertura"],
      ["Veterano","Ignora penalità combattimenti multipli (Sparo)"],
      ["Trama d'Etere","(Incantatori) Gittata massima incantesimi +6\"."],
-     ["Artificiere","Preparazione: supera una sfida casuale; se riesci, scegli un Bene Arcano di costo ≤ successi ottenuti."],
+     ["Artefice","Preparazione: supera una sfida casuale; se riesci, scegli un Bene Arcano di costo ≤ successi ottenuti."],
      ["Cuore di Drago","Test di Recupero Incantesimo superato: rimuovi fino a 2 segnalini invece di 1."],
      ["Vista Mistica","(Incantatori) Non serve Linea di Vista per bersagliare con i tuoi incantesimi."],
-     ["Fato","Fine turno: Test di Recupero Incantesimo anche su Incantamenti nemici non tuoi; se superato, rimuovi 1 segnalino a scelta."]],
+     ["Fato","Se c'è un Incantamento nemico in gioco (anche non tuo), a fine turno puoi tirare un Test di Recupero Incantesimo; se superato, rimuovi 1 segnalino da un Incantamento nemico a scelta."]],
   4:[["Benestante","+1 punto risorsa in preparazione"],["Canaglia","Nemico A Terra a contatto: scarta o va KO"],
      ["Cappa & Daga","+1 successo a test individuazione"],["Comandante","+4 spazi Banda (solo Liv.1-2)"],
      ["Convocare","Azione Completa: evoca Servitori Liv.1"],["Diavolo Fortunato","Blocca effetti \"quando un nemico si attiva\""],
@@ -716,80 +738,80 @@ const ABILITA = {
      ["Intimidatorio","I nemici deboli devono superare Astuzia"],
      ["Intoccabile","Conti sempre come in copertura"],
      ["Inumano","Porta una Capacità da d10 a d12", [{k:'typestepChoice',steps:1,count:1,options:CAP_KEYS}]],
-     ["Lottatore","I nemici deboli devono superare Forza"],["Maestro del Travestimento","Inizia nascosto; soppiatto a 6\""],
+     ["Lottatore","I nemici deboli devono superare Forza"],["Maestro del Travestimento","Inizia nascosto; si avvicina di soppiatto a 6\""],
      ["Nervi d'Acciaio","Ignora una penalità di -1 dado"],["Offuscare la Mente","Nasconditi anche in LdV nemica"],
      ["Placcaggio al Volo","-1 dado a tutte le Capacità di combattimento nemiche"],["Presenza Dannata","Pericolo dalla mano contro un nemico"],
      ["Presenza Oscura","Sagoma 3\" pericolosa che blocca LdV"],["Rigenerazione","Test di Recupero con 1d8"],
      ["Ripresa","Recupero modelli per una Gang amica"],["Risucchio di Vita","Recupero immediato se vinci nettamente Rissa"],
      ["Scellerato","Il nemico sconfitto non recupera questo turno"],["Seguace Leale","Personaggi temporanei beneficiano dei Vantaggi"],
      ["Senso di Pericolo","Supera automaticamente il primo pericolo"],["Stimolante","+1 dado sfida a un compagno entro 12\""],
-     ["Straordinario","Porta una Capacità da d8 a d10", [{k:'typestepChoice',steps:1,count:1,options:CAP_KEYS}]],["Tattico","Abilità Gang extra alle Gang entro 12\""],
+     ["Straordinario","Porta una Capacità da d8 a d10", [{k:'typestepChoice',steps:1,count:1,options:CAP_KEYS}]],["Tattico","Allo schieramento, scegli Armato/Pericoloso/Disciplinato/Leale per le Gang entro 12\" (no Folle)"],
      ["Vigoroso","Rilancia 1 dado Salute fallito in Rissa"],["Volontà Ferrea","Azione: Test di Recupero immediato"],
      ["Aura Arcana","Resistendo a un incantesimo nemico riuscito, riduci il suo Potere di 1 per ogni tuo successo."],
-     ["Ammaliatore","(Incantatori) Incanalare per lanciare/resistere a un Incantamento dà +2 invece di +1."],
-     ["Stregone","(Incantatori) Incanalare per lanciare/resistere a un Effimero dà +2 invece di +1."],
-     ["Natomago","(Incantatori) Muovi fino a 6\" e incanali nella stessa Attivazione. Ricerca Arcana costa -1 PE."]],
+     ["Maestro di Incantamenti","(Incantatori) Incanalare per lanciare/resistere a un Incantamento dà +2 invece di +1."],
+     ["Stregone","(Incantatori) Incanalare per lanciare/resistere a un Incantesimo Istantaneo dà +2 invece di +1."],
+     ["Retaggio Arcano","(Incantatori) Muovi fino a 6\" e incanali nella stessa Attivazione. Ricerca Arcana costa -1 PE."]],
 };
 
 const SPELLS = {
-  rosso: { skill:'Forza', colore:'#8a2323', label:'Rosso (Forza)',
+  rosso: { skill:'Forza', colore:'#8a2323', label:'Scuola Rossa (Forza)',
     2:[
       {nome:"Augeo", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Forza", effetto:"Il bersaglio ottiene un bonus di +1 a Rissa e Forza.", breve:"+1 Rissa/Forza al bersaglio"},
       {nome:"Gravis", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Il Movimento del bersaglio è Compromesso.", breve:"Movimento Compromesso"},
-      {nome:"Ignis Ictus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce un numero di colpi pari al Potere di questo incantesimo.", breve:"Colpi = Potere"},
-      {nome:"Revoco", tipo:"Effimero", bersaglio:"Marcatore Incantesimo max 12\"", prova:"Forza", effetto:"Tutti i personaggi entro un numero di pollici pari al Potere incontrano un Pericolo.", breve:"Pericolo entro X\" (X=Potere)"},
+      {nome:"Ignis Ictus", tipo:"Istantaneo", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce un numero di colpi pari al Potere di questo incantesimo.", breve:"Colpi = Potere"},
+      {nome:"Revoco", tipo:"Istantaneo", bersaglio:"Segnalino Incantesimo max 12\"", prova:"Forza", effetto:"Tutti i personaggi entro un numero di pollici pari al Potere incontrano un Pericolo.", breve:"Pericolo entro X\" (X=Potere)"},
       {nome:"Stupor", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"La Schivata e l'Astuzia del bersaglio sono Intralciate.", breve:"Schivata/Astuzia Intralciate"},
-      {nome:"Tumultus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure si muove X\" in qualsiasi direzione (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o sposta X\""},
+      {nome:"Tumultus", tipo:"Istantaneo", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure si muove X\" in qualsiasi direzione (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o sposta X\""},
     ],
     3:[
-      {nome:"Fragor", tipo:"Effimero", bersaglio:"Nemici max 12\"", prova:"Forza", effetto:"Prendi di mira un numero di nemici, fino al Potere di questo incantesimo. Ogni bersaglio subisce 1 colpo.", breve:"1 colpo a nemici = Potere"},
+      {nome:"Fragor", tipo:"Istantaneo", bersaglio:"Nemici max 12\"", prova:"Forza", effetto:"Prendi di mira un numero di nemici, fino al Potere di questo incantesimo. Ogni bersaglio subisce 1 colpo.", breve:"1 colpo a nemici = Potere"},
       {nome:"Impar Acti", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Le azioni del bersaglio sono Compromesse.", breve:"Azioni Compromesse"},
-      {nome:"Jactus", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
+      {nome:"Jactus", tipo:"Istantaneo", bersaglio:"Nemico max 12\"", prova:"Forza contrapposta", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
       {nome:"Oculo Malus", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Il bersaglio conta come se si trovasse in un'Area Difficile.", breve:"Conta come Area Difficile"},
     ],
     4:[
-      {nome:"Duellum", tipo:"Effimero", bersaglio:"Nemico max 3\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce una ferita. Speciale: se il bersaglio vince, l'incantatore subisce una ferita.", breve:"1 ferita (contraccolpo se perdi)"},
+      {nome:"Duellum", tipo:"Istantaneo", bersaglio:"Nemico max 3\"", prova:"Forza contrapposta", effetto:"Il bersaglio subisce una ferita. Speciale: se il bersaglio vince, l'incantatore subisce una ferita.", breve:"1 ferita (contraccolpo se perdi)"},
       {nome:"Maledictum", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Forza contrapposta", effetto:"Prima che il bersaglio tiri per qualsiasi Capacità, l'incantatore può rimuovere 1 segnalino per infliggergli -1 dado.", breve:"-1 dado (rimuovi 1 segnalino)"},
     ],
   },
-  blu: { skill:'Finezza', colore:'#28524d', label:'Blu (Finezza)',
+  blu: { skill:'Finezza', colore:'#28524d', label:'Scuola Blu (Finezza)',
     2:[
-      {nome:"Confusio", tipo:"Effimero", bersaglio:"Nemico max 12\"", prova:"Finezza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure incontra un Pericolo (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o pericolo"},
+      {nome:"Confusio", tipo:"Istantaneo", bersaglio:"Nemico max 12\"", prova:"Finezza contrapposta", effetto:"Il bersaglio scarta X carte casuali, oppure incontra un Pericolo (scelta dell'incantatore; X = Potere).", breve:"Scarta X carte o pericolo"},
       {nome:"Debilitor", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Finezza contrapposta", effetto:"La Rissa e la Forza del bersaglio sono Intralciate.", breve:"Rissa/Forza Intralciate"},
       {nome:"Dextrus", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Finezza", effetto:"Il bersaglio ottiene un bonus di +1 a Sparo e Finezza.", breve:"+1 Sparo/Finezza al bersaglio"},
-      {nome:"Nebulo", tipo:"Incantamento", bersaglio:"Marcatore Incantesimo max 24\"", prova:"Finezza", effetto:"L'area (6\" diam.) attorno al marcatore è Oscurata e Difficile.", breve:"Area 6\" oscurata/difficile"},
-      {nome:"Obscuro", tipo:"Effimero", bersaglio:"Sé e Amici max 12\"", prova:"Finezza", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: ciascuno diventa Nascosto.", breve:"Nasconde amici = Potere"},
-      {nome:"Vis Sortis", tipo:"Effimero", bersaglio:"Incantamenti max 6\"", prova:"Finezza", effetto:"Aggiungi 1 segnalino su ogni Incantamento entro 6\", oppure rimuovine 1 da ciascuno.", breve:"±1 segnalino incantamenti 6\""},
+      {nome:"Nebulo", tipo:"Incantamento", bersaglio:"Segnalino Incantesimo max 24\"", prova:"Finezza", effetto:"L'area (6\" diam.) attorno al segnalino è Oscurata e Difficile.", breve:"Area 6\" oscurata/difficile"},
+      {nome:"Obscuro", tipo:"Istantaneo", bersaglio:"Sé e Amici max 12\"", prova:"Finezza", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: ciascuno diventa Nascosto.", breve:"Nasconde amici = Potere"},
+      {nome:"Vis Sortis", tipo:"Istantaneo", bersaglio:"Incantamenti max 6\"", prova:"Finezza", effetto:"Aggiungi 1 segnalino su ogni Incantamento entro 6\", oppure rimuovine 1 da ciascuno.", breve:"±1 segnalino incantamenti 6\""},
     ],
     3:[
       {nome:"Ab Amesha", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Finezza", effetto:"Il bersaglio ottiene l'Abilità Acquatico, Celato o Alato (scelta dell'incantatore).", breve:"Ottiene Acquatico/Celato/Alato"},
       {nome:"Invisus", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Finezza", effetto:"Il bersaglio è Nascosto: quando un nemico tira per individuarlo, il bersaglio vince automaticamente e si rimuove 1 segnalino (anche quando verrebbe automaticamente individuato).", breve:"Nascosto, vince individuazione"},
-      {nome:"Stabilitas", tipo:"Effimero", bersaglio:"Incantamento max 12\"", prova:"Finezza", effetto:"Aggiungi o rimuovi dal bersaglio un numero di segnalini pari al Potere di questo incantesimo.", breve:"±segnalini = Potere"},
-      {nome:"Zephyrus", tipo:"Effimero", bersaglio:"Sé o Amico max 12\"", prova:"Finezza", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
+      {nome:"Stabilitas", tipo:"Istantaneo", bersaglio:"Incantamento max 12\"", prova:"Finezza", effetto:"Aggiungi o rimuovi dal bersaglio un numero di segnalini pari al Potere di questo incantesimo.", breve:"±segnalini = Potere"},
+      {nome:"Zephyrus", tipo:"Istantaneo", bersaglio:"Sé o Amico max 12\"", prova:"Finezza", effetto:"Muovi il bersaglio di un numero di pollici, fino al Potere di questo incantesimo, in qualsiasi direzione.", breve:"Sposta bersaglio fino a Potere\""},
     ],
     4:[
       {nome:"Dementis", tipo:"Incantamento", bersaglio:"Nemico max 12\"", prova:"Finezza contrapposta", effetto:"Ogni volta che il bersaglio si attiva, deve pescare una carta Orrore.", breve:"Pesca Orrore ad ogni attivazione"},
-      {nome:"Relinquo", tipo:"Effimero", bersaglio:"Nemico max 6\"", prova:"Finezza contrapposta", effetto:"Se il bersaglio possiede uno o più Punti Trama, deve scartarne uno (a scelta del bersaglio).", breve:"Bersaglio abbandona 1 Punto Trama"},
+      {nome:"Relinquo", tipo:"Istantaneo", bersaglio:"Nemico max 6\"", prova:"Finezza contrapposta", effetto:"Se il bersaglio possiede uno o più Punti Trama, deve scartarne uno (a scelta del bersaglio).", breve:"Bersaglio abbandona 1 Punto Trama"},
     ],
   },
-  verde: { skill:'Astuzia', colore:'#7a5c1e', label:'Verde (Astuzia)',
+  verde: { skill:'Astuzia', colore:'#7a5c1e', label:'Scuola Verde (Astuzia)',
     2:[
-      {nome:"Emendo", tipo:"Effimero", bersaglio:"Sé e Amici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: tira un Test di Recupero per ciascuno.", breve:"Recupero per amici = Potere"},
+      {nome:"Emendo", tipo:"Istantaneo", bersaglio:"Sé e Amici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira amici fino al Potere di questo incantesimo: tira un Test di Recupero per ciascuno.", breve:"Recupero per amici = Potere"},
       {nome:"Ineptus", tipo:"Incantamento", bersaglio:"Nemico max 24\"", prova:"Astuzia contrapposta", effetto:"Lo Sparo e la Finezza del bersaglio sono Intralciati.", breve:"Sparo/Finezza Intralciati"},
       {nome:"Prudenti", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Astuzia", effetto:"Il bersaglio ottiene un bonus di +1 a Schivata e Astuzia.", breve:"+1 Schivata/Astuzia al bersaglio"},
-      {nome:"Pulsus", tipo:"Effimero", bersaglio:"Nemici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira nemici fino al Potere di questo incantesimo: muovi ciascuno di 1\" lontano dall'incantatore.", breve:"Sposta nemici 1\" via"},
-      {nome:"Purgatrix", tipo:"Effimero", bersaglio:"Incantamento max 6\"", prova:"Astuzia", effetto:"Rimuovi tutti i segnalini Potere dal bersaglio.", breve:"Rimuove tutti i segnalini"},
+      {nome:"Pulsus", tipo:"Istantaneo", bersaglio:"Nemici max 12\"", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure prendi di mira nemici fino al Potere di questo incantesimo: muovi ciascuno di 1\" lontano dall'incantatore.", breve:"Sposta nemici 1\" via"},
+      {nome:"Purgatrix", tipo:"Istantaneo", bersaglio:"Incantamento max 6\"", prova:"Astuzia", effetto:"Rimuovi tutti i segnalini Potere dal bersaglio.", breve:"Rimuove tutti i segnalini"},
       {nome:"Resoluta", tipo:"Incantamento", bersaglio:"Sé o Amico max 12\"", prova:"Astuzia", effetto:"Prima che il bersaglio tiri per un Pericolo o un Punto Trama, può rimuovere 1 segnalino per ottenere +1.", breve:"+1 a pericolo/punto trama"},
     ],
     3:[
-      {nome:"Ab Initio", tipo:"Effimero", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure diventa il Direttore.", breve:"Carta Fortuna o Direttore"},
-      {nome:"Aruspex", tipo:"Effimero", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca carte Fortuna pari al Potere: aggiungine 1 alla mano, rimetti le altre in cima al mazzo nell'ordine che preferisci.", breve:"Pesca e scegli tra X carte"},
+      {nome:"Ab Initio", tipo:"Istantaneo", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca una carta Fortuna, oppure diventa il Direttore.", breve:"Carta Fortuna o Direttore"},
+      {nome:"Aruspex", tipo:"Istantaneo", bersaglio:"n/d", prova:"Astuzia", effetto:"Pesca carte Fortuna pari al Potere: aggiungine 1 alla mano, rimetti le altre in cima al mazzo nell'ordine che preferisci.", breve:"Pesca e scegli tra X carte"},
       {nome:"Fortis Velo", tipo:"Incantamento", bersaglio:"Sé o Amico max 6\"", prova:"Astuzia", effetto:"Il bersaglio ottiene l'Abilità Corazzato, Indomito o Intoccabile (scelta dell'incantatore).", breve:"Ottiene Corazzato/Indomito/Intoccabile"},
-      {nome:"Periculos", tipo:"Incantamento", bersaglio:"Marcatore Incantesimo max 12\"", prova:"Astuzia", effetto:"L'area (3\" diam.) attorno al marcatore è Pericolosa per tutti i nemici.", breve:"Area 3\" pericolosa"},
+      {nome:"Periculos", tipo:"Incantamento", bersaglio:"Segnalino Incantesimo max 12\"", prova:"Astuzia", effetto:"L'area (3\" diam.) attorno al segnalino è Pericolosa per tutti i nemici.", breve:"Area 3\" pericolosa"},
     ],
     4:[
       {nome:"Ab Scutum", tipo:"Incantamento", bersaglio:"Sé o Amico max 3\"", prova:"Astuzia", effetto:"Invece di tirare un Test di Salute, il bersaglio può rimuovere 1 segnalino per superarlo automaticamente.", breve:"Supera Test Salute automatico"},
-      {nome:"Sana Purus", tipo:"Effimero", bersaglio:"Sé o Amico max 6\"", prova:"Astuzia", effetto:"Il bersaglio tira un numero di Test di Recupero pari al Potere di questo incantesimo.", breve:"Recuperi = Potere"},
+      {nome:"Sana Purus", tipo:"Istantaneo", bersaglio:"Sé o Amico max 6\"", prova:"Astuzia", effetto:"Il bersaglio tira un numero di Test di Recupero pari al Potere di questo incantesimo.", breve:"Recuperi = Potere"},
     ],
   },
 };
@@ -946,6 +968,15 @@ function findGrantableAbility(nome){
 
 function clampIdx(i){ return Math.max(0, Math.min(DTYPES.length-1, i)); }
 
+// Applica uno spostamento al TIPO di dado di una Capacità. Come da manuale: se la
+// riduzione porterebbe il tipo sotto d6, la Capacità diventa "Niente Dadi" invece
+// di restare bloccata a d6 (bug corretto: prima il minimo era semplicemente d6).
+function applyTypestep(entry, steps){
+  const newIdx = entry.typeIdx + steps;
+  if(newIdx < 0){ entry.nd = true; }
+  else { entry.typeIdx = Math.min(DTYPES.length-1, newIdx); }
+}
+
 // Calcola i dadi "base" (solo dalla scelta forte/debole) di una Capacità
 function baseCapacita(t, capSel){
   const qty = t.qtyChoice ? (capSel.qty==='high' ? t.qtyHigh : t.qtyLow) : t.qtyHigh;
@@ -970,9 +1001,9 @@ function applyModsToResult(mods, result, chosen, t){
     } else if(m.k==='nd'){
       if(result[m.cap]) result[m.cap].nd = true;
     } else if(m.k==='typestep'){
-      if(result[m.cap]) result[m.cap].typeIdx = clampIdx(result[m.cap].typeIdx + m.steps);
+      if(result[m.cap]) applyTypestep(result[m.cap], m.steps);
     } else if(m.k==='typestepChoice'){
-      (chosen || []).forEach(cap=>{ if(result[cap]) result[cap].typeIdx = clampIdx(result[cap].typeIdx + m.steps); });
+      (chosen || []).forEach(cap=>{ if(result[cap]) applyTypestep(result[cap], m.steps); });
     } else if(m.k==='levelDice'){
       CAP_KEYS.forEach(kk=>{ if(!result[kk].nd) result[kk].qty = t.livello; });
     }
@@ -1335,13 +1366,34 @@ function renderAbilitaSection(c, t){
       `;
       label.querySelector('input').addEventListener('change', e=>{
         if(e.target.checked){
-          if(c.abilita.length >= t.maxAbilita){
+          const ab = findAbilityByKey(key);
+          const isExclusive = ab.mods.some(m=>m.k==='exclusive');
+          const hasExclusiveAlready = c.abilita.some(k2=>{
+            const other = findAbilityByKey(k2);
+            return other && other.mods.some(m=>m.k==='exclusive');
+          });
+          if(hasExclusiveAlready){
+            const exclAb = c.abilita.map(findAbilityByKey).find(a=>a && a.mods.some(m=>m.k==='exclusive'));
+            alert(`"${exclAb.nome}" non può essere combinata con altre Abilità. Rimuovila prima di aggiungerne altre.`);
+            e.target.checked = false;
+            return;
+          }
+          if(isExclusive && c.abilita.length > 0){
+            // Un'Abilità come Vero Credente non è compatibile con nessun'altra:
+            // sostituisce tutte quelle già selezionate invece di limitarsi a bloccare
+            if(!confirm(`"${ab.nome}" non è compatibile con altre Abilità. Selezionandola rimuoverai tutte quelle già scelte per questo personaggio. Continuare?`)){
+              e.target.checked = false;
+              return;
+            }
+            c.abilita = [];
+            c.abilitaChoices = {};
+          }
+          if(!isExclusive && c.abilita.length >= t.maxAbilita){
             alert('Numero massimo di Abilità raggiunto ('+t.maxAbilita+').');
             e.target.checked = false;
             return;
           }
           c.abilita.push(key);
-          const ab = findAbilityByKey(key);
           ab.mods.forEach(m=>{
             if(m.k==='deltaChoice' || m.k==='typestepChoice' || m.k==='grantAbility'){
               c.abilitaChoices[key] = m.options.slice(0, m.count);
@@ -1574,104 +1626,84 @@ function buildCardHtml(c){
     return `<div><span>${k}</span><span class="cv">${formatCapValue(finalVals[k])}</span></div>`;
   }).join('');
 
-  // Sulla carta, "Talento Innato" è ridondante (basta il Libro degli Incantesimi) e "Arte Magica" viene
-  // mostrata in forma compatta: risparmia spazio per gli incantesimi veri e propri.
-  // Le Abilità come Bestia/Stupido concedono altre Abilità gratuite (scelte con un
-  // menu a tendina): queste compaiono qui come loro proprie righe, subito dopo.
-  const abilitaVisibili = c.abilita.map(key=>findAbilityByKey(key)).filter(ab=>ab && ab.nome!=='Talento Innato');
-  const abilitaRighe = [];
+  // Le Abilita' come Bestia/Stupido concedono altre Abilita' gratuite (scelte con un menu a
+  // tendina): compaiono qui come proprie righe, subito dopo. Il testo di queste 7 Abilita'
+  // e' abbreviato sulla carta (niente piu' "scegli 2 abilita' gratuite", visto che le due
+  // scelte sono la riga subito sotto): il testo completo resta nel menu di selezione.
+  // Gli Incantesimi non hanno piu' un box a parte: il loro nome viene agganciato in coda
+  // alla riga dell'Abilita' che rende il personaggio Incantatore (Arte Magica/Talento
+  // Innato), risparmiando il titolo e il bordo di un box separato. Il dettaglio completo
+  // di ogni incantesimo e' sulla sua carta dedicata (vedi buildSpellCards).
+  const abilitaVisibili = c.abilita.map(key=>findAbilityByKey(key)).filter(Boolean);
+  const righeData = []; // {nome, effetto, granted}
   abilitaVisibili.forEach(ab=>{
-    const testoCarta = ab.cardText || ab.effetto;
-    const testo = `${ab.nome} — ${testoCarta}`;
-    abilitaRighe.push({ testo, peso: stimaRighe(testo),
-      html:`<div class="ab-item"><b>${escapeHtml(ab.nome)}</b> — ${escapeHtml(testoCarta)}</div>` });
+    righeData.push({ nome: ab.nome, effetto: ab.cardText || ab.effetto, granted:false });
     const grantMod = ab.mods.find(m=>m.k==='grantAbility');
     if(grantMod){
       const chosenNames = c.abilitaChoices[ab.key] || [];
       chosenNames.forEach(nome=>{
         const granted = findGrantableAbility(nome);
-        if(!granted) return;
-        const gTesto = granted.cardText || granted.effetto;
-        const gTestoFull = `${granted.nome} — ${gTesto}`;
-        abilitaRighe.push({ testo: gTestoFull, peso: stimaRighe(gTestoFull),
-          html:`<div class="ab-item ab-item-granted"><b>${escapeHtml(granted.nome)}</b> — ${escapeHtml(gTesto)}</div>` });
+        if(granted) righeData.push({ nome: granted.nome, effetto: granted.cardText || granted.effetto, granted:true });
       });
     }
   });
 
-  // Due versioni degli incantesimi: "breve" per quando entrano insieme alle Abilità
-  // su una carta sola, "piena" per quando ottengono una carta tutta loro (in quel
-  // caso tanto vale mostrare il testo regolamentare completo, non serve comprimerlo).
-  const spellRigheBreve = c.incantesimi.map(nome=>{
-    const sp = findSpell(nome);
-    if(!sp) return null;
-    const breve = truncate(sp.breve, 42);
-    const testo = `${sp.nome} ${sp.bersaglio} ${sp.prova} — ${breve}`;
-    return { testo, peso: stimaRighe(testo),
-      html: `<div class="sp-item" style="border-left:2px solid ${sp.colore}"><b>${escapeHtml(sp.nome)}</b> <span class="sp-meta">${escapeHtml(sp.bersaglio)}, ${escapeHtml(sp.prova)}</span> — ${escapeHtml(breve)}</div>` };
-  }).filter(Boolean);
+  // Trova la riga dell'Abilita' Incantatore a cui agganciare l'elenco degli Incantesimi
+  let casterIdx = righeData.findIndex(r=>r.nome==='Arte Magica');
+  if(casterIdx===-1) casterIdx = righeData.findIndex(r=>r.nome==='Talento Innato');
+
+  if(c.incantesimi.length){
+    const spellSpansHtml = c.incantesimi.map(nome=>{
+      const sp = findSpell(nome);
+      return sp ? `<span style="color:${sp.colore};font-weight:600;">${escapeHtml(sp.nome)}</span>` : escapeHtml(nome);
+    }).join(', ');
+    const spellNamesPlain = c.incantesimi.join(', ');
+    if(casterIdx !== -1){
+      righeData[casterIdx].spellSuffixHtml = ` Incantesimi: ${spellSpansHtml}.`;
+      righeData[casterIdx].spellSuffixPlain = ` Incantesimi: ${spellNamesPlain}.`;
+    } else {
+      // Nessuna Abilita' Incantatore trovata (caso limite): riga autonoma di sicurezza
+      righeData.push({ nome:null, effetto:`Incantesimi: ${spellNamesPlain}.`, effettoHtml:`Incantesimi: ${spellSpansHtml}.`, granted:false });
+    }
+  }
+
+  const abilitaRighe = righeData.map(r=>{
+    const suffixPlain = r.spellSuffixPlain || '';
+    const suffixHtml = r.spellSuffixHtml || '';
+    if(r.nome === null){
+      const testo = r.effetto;
+      return { testo, peso: stimaRighe(testo), html:`<div class="ab-item">${r.effettoHtml}</div>` };
+    }
+    const testo = `${r.nome} — ${r.effetto}${suffixPlain}`;
+    const html = `<div class="ab-item${r.granted?' ab-item-granted':''}"><b>${escapeHtml(r.nome)}</b> — ${escapeHtml(r.effetto)}${suffixHtml}</div>`;
+    return { testo, peso: stimaRighe(testo), html };
+  });
 
   const abilitaPesoTot = abilitaRighe.reduce((s,r)=>s+r.peso,0);
-  const spellBrevePesoTot = spellRigheBreve.reduce((s,r)=>s+r.peso,0);
 
-  // Caso normale: Abilità + Incantesimi (in forma breve) entrano insieme in una carta sola
-  if(abilitaPesoTot + spellBrevePesoTot <= CARD_OVERFLOW_THRESHOLD || (abilitaRighe.length + spellRigheBreve.length) === 0){
-    return [ renderCardShell(c, t, finalVals, capRows, abilitaRighe, spellRigheBreve, {isContinuation:false, showTitle:false}) ];
+  // Caso normale: tutto entra su una carta sola (praticamente sempre, ora che gli
+  // Incantesimi sono solo nomi agganciati a una riga esistente)
+  if(abilitaPesoTot <= CARD_OVERFLOW_THRESHOLD || abilitaRighe.length === 0){
+    return [ renderCardShell(c, t, finalVals, capRows, abilitaRighe, {isContinuation:false}) ];
   }
 
-  // Caso overflow: separiamo le due cose. Le Abilità restano sulla carta principale
-  // (con eventuali carte di continuazione se sono troppe anche da sole); tutti gli
-  // Incantesimi vanno su una carta dedicata "Libro degli Incantesimi", stavolta con
-  // il testo REGOLAMENTARE COMPLETO (non più la versione breve) perché ora hanno
-  // spazio tutto per loro. Le due carte funzionano bene anche stampate fronte/retro.
-  const spellRighePiene = c.incantesimi.map(nome=>{
-    const sp = findSpell(nome);
-    if(!sp) return null;
-    const testo = `${sp.nome} ${sp.bersaglio} ${sp.prova} — ${sp.effetto}`;
-    return { testo, peso: stimaRighe(testo),
-      html: `<div class="sp-item" style="border-left:2px solid ${sp.colore}"><b>${escapeHtml(sp.nome)}</b> <span class="sp-meta">${escapeHtml(sp.tipo)} · ${escapeHtml(sp.bersaglio)} · ${escapeHtml(sp.prova)}</span> — ${escapeHtml(sp.effetto)}</div>` };
-  }).filter(Boolean);
-
+  // Caso overflow estremo (tantissime Abilita', es. Bestia + Stupido + altre): le Abilita'
+  // proseguono su carte "(continua)".
   const abilitaChunks = chunkByWeight(abilitaRighe, CARD_OVERFLOW_THRESHOLD);
-  const spellChunks = chunkByWeight(spellRighePiene, CARD_OVERFLOW_THRESHOLD);
-
-  const cards = [];
-  if(abilitaChunks.length === 0){
-    cards.push(renderCardShell(c, t, finalVals, capRows, [], [], {isContinuation:false, showTitle:false}));
-  } else {
-    abilitaChunks.forEach((chunk, i)=>{
-      cards.push(renderCardShell(c, t, finalVals, capRows, chunk, [], {isContinuation:i>0, showTitle:false}));
-    });
-  }
-  spellChunks.forEach((chunk, i)=>{
-    const suffix = spellChunks.length>1 ? ` · Libro degli Incantesimi ${i+1}/${spellChunks.length}` : ' · Libro degli Incantesimi';
-    cards.push(renderCardShell(c, t, finalVals, capRows, [], chunk, {isContinuation:true, showTitle:true, nameSuffix:suffix}));
-  });
-  return cards;
+  return abilitaChunks.map((chunk, i)=>
+    renderCardShell(c, t, finalVals, capRows, chunk, {isContinuation:i>0})
+  );
 }
 
-function renderCardShell(c, t, finalVals, capRows, abilitaRighe, spellRighe, opts){
-  const { isContinuation, showTitle, nameSuffix } = opts;
+function renderCardShell(c, t, finalVals, capRows, abilitaRighe, opts){
+  const { isContinuation } = opts;
   const abilitaHtmlFinal = abilitaRighe.length
     ? abilitaRighe.map(r=>r.html).join('')
     : (isContinuation ? '' : '<div class="ab-item" style="opacity:.5;">Nessuna abilità selezionata</div>');
-  const titleHtml = (showTitle && spellRighe.length) ? '<div class="gr-title">Libro degli Incantesimi</div>' : '';
-  const grimorioHtml = spellRighe.length
-    ? `<div class="grimorio-box">${titleHtml}${spellRighe.map(r=>r.html).join('')}</div>`
-    : '';
 
-  // Lo spazio tra il box Abilità e quello Incantesimi è proporzionale al numero di
-  // righe che il testo occuperà realmente (stimato dalla lunghezza dei caratteri),
-  // non a un moltiplicatore fisso per elemento: così un'Abilità lunga ottiene
-  // davvero più spazio di una corta, e viceversa.
-  const abilitaPeso = Math.max(abilitaRighe.reduce((s,r)=>s+r.peso,0), abilitaRighe.length ? 1 : 0.001);
-  const grimorioPeso = spellRighe.reduce((s,r)=>s+r.peso,0);
-
-  // Note ed intestazione Capacità solo sulla prima carta: le altre proseguono soltanto
+  // Note ed intestazione Capacita' solo sulla prima carta: le altre proseguono soltanto
   const notesHtml = (!isContinuation && c.note) ? `<div class="notes-box">${escapeHtml(c.note)}</div>` : '';
-  const nomeMostrato = nameSuffix
-    ? `${escapeHtml(c.nome)}${nameSuffix}`
-    : (isContinuation ? `${escapeHtml(c.nome)} (continua)` : escapeHtml(c.nome));
+  const nomeMostrato = isContinuation ? `${escapeHtml(c.nome)} (continua)` : escapeHtml(c.nome);
   const capSectionHtml = isContinuation ? '' : `
       <div class="type-row"><span>${t.label} · Liv.${t.livello}</span><span>Salute ${formatCapValue(finalVals['Salute'])}</span></div>
       <div class="cap-table">${capRows}</div>`;
@@ -1680,8 +1712,7 @@ function renderCardShell(c, t, finalVals, capRows, abilitaRighe, spellRighe, opt
     <div class="pcard">
       <div class="name-banner">${nomeMostrato}</div>${capSectionHtml}
       <div class="flex-content">
-        ${abilitaRighe.length ? `<div class="abilita-box" style="flex:${abilitaPeso} 1 0;">${abilitaHtmlFinal}</div>` : ''}
-        ${grimorioHtml ? grimorioHtml.replace('class="grimorio-box"', `class="grimorio-box" style="flex:${grimorioPeso} 1 0;"`) : ''}
+        <div class="abilita-box" style="flex:1 1 0;">${abilitaHtmlFinal}</div>
       </div>
       ${notesHtml}
       <div class="footer-strip"><span class="fs-banda">${escapeHtml(state.banda || 'La Mia Banda')}</span> · Pulp Alley</div>
@@ -1689,7 +1720,40 @@ function renderCardShell(c, t, finalVals, capRows, abilitaRighe, spellRighe, opt
   `;
 }
 
-// Raccoglie, senza duplicati, tutte le Abilità/Incantesimi/Abilità Socio
+// Una carta dedicata per ogni Incantesimo posseduto da ogni personaggio (per esplicita scelta:
+// se due personaggi hanno lo stesso incantesimo, ognuno ha la propria carta fisica -- utile per
+// tenerne traccia quando sono entrambi in gioco simultaneamente). Testo regolamentare completo.
+function buildSpellCards(){
+  const all = [state.leader, ...state.companions];
+  const cards = [];
+  all.forEach(c=>{
+    c.incantesimi.forEach(nome=>{
+      const sp = findSpell(nome);
+      if(!sp) return;
+      cards.push(renderSpellCard(c, sp));
+    });
+  });
+  return cards;
+}
+
+function renderSpellCard(c, sp){
+  return `
+    <div class="pcard spell-card">
+      <div class="band-banner" style="background:${sp.colore};">${escapeHtml(c.nome)}</div>
+      <div class="name-banner">${escapeHtml(sp.nome)}</div>
+      <div class="type-row"><span>${escapeHtml(sp.branchLabel)}</span><span>Livello ${sp.livello}</span></div>
+      <div class="spell-meta-table">
+        <div><span>Tipo</span><span>${escapeHtml(sp.tipo)}</span></div>
+        <div><span>Bersaglio</span><span>${escapeHtml(sp.bersaglio)}</span></div>
+        <div><span>Prova</span><span>${escapeHtml(sp.prova)}</span></div>
+      </div>
+      <div class="spell-effect-box">${escapeHtml(sp.effetto)}</div>
+      <div class="footer-strip"><span class="fs-banda">${escapeHtml(state.banda || 'La Mia Banda')}</span> · Pulp Alley</div>
+    </div>
+  `;
+}
+
+// Raccoglie, senza duplicati, tutte le Abilita'/Incantesimi/Abilita' Socio
 // effettivamente usati da qualcuno nella Banda, per il Glossario stampato.
 function renderPrintSheets(){
   const all = [state.leader, ...state.companions];
@@ -1706,6 +1770,10 @@ function renderPrintSheets(){
   if (vantaggioCard) {
     cardHtmlArray.unshift(vantaggioCard);
   }
+
+  // Le carte-incantesimo (una per ogni Incantesimo di ogni personaggio, testo completo)
+  // vanno sempre in fondo al mazzo, dopo tutti i modelli/personaggi
+  cardHtmlArray = cardHtmlArray.concat(buildSpellCards());
 
   const sheetEls = [];
   // Suddividiamo l'intero array di carte in blocchi da 9 per ogni foglio A4
